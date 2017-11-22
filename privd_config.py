@@ -1,3 +1,4 @@
+import os
 import yaml
 
 class Config(object):
@@ -10,9 +11,9 @@ class Config(object):
             load = yaml.safe_load(stream)
         #MAIN FOLDER
         try:
-            self.main_folder = load['main_folder']
+            self.main_folder = load['main_folder'].replace('$HOME', os.environ['HOME'])
         except KeyError as exc:
-            self.main_folder = "$HOME/.privd"
+            self.main_folder = os.environ['HOME'] + "/.privd"
         #KEYS FOLDER
         try:
             self.keys_folder = self.main_folder + load['keys_folder']
