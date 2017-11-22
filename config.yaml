@@ -1,0 +1,10 @@
+---
+main_folder: '$HOME/.privd'
+# Default is $HOME/.privd/keys
+# This folder is relative to main_folder
+keys_folder: '/keys_aux'
+folders:
+  - name: 'main'
+    path: '$HOME/Privd'
+  - name: 'main'
+    path: '$HOME/Privd'

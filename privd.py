@@ -7,6 +7,8 @@
 # DestinationFolder
 # File
 
+from privd_config import Config
+
 class File(object):
   """ A file that is going to be encrypted, decrypted and synced
   """
@@ -26,4 +28,5 @@ class File(object):
 if __name__ == "__main__":
   newfile = File('$HOME/blah')
   print(newfile.encrypt("blah"))
+  config = Config()
 
