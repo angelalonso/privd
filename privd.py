@@ -32,6 +32,12 @@ if __name__ == "__main__":
   config = Config()
 
   gpg = gnupg.GPG(homedir=config.main_folder)
-  input_data = gpg.gen_key_input(key_type="RSA", key_length=1024)
-  key = gpg.gen_key(input_data)
-  gpg.export_keys(key.fingerprint)
+  print(config.main_folder)
+
+  with open('/home/aaf/.privd/Priv_test_source/file.dec', 'rb') as f:
+    status = gpg.encrypt_file(
+        f, recipients=['testgpguser@mydomain.com'],
+        output='/home/aaf/.privd/Priv_test_dest/file.dec.enc')
+ # key = gpg.gen_key(input_data)
+ # print (gpg.export_keys(key.fingerprint))
+  
