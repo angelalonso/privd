@@ -1,0 +1,28 @@
+import subprocess
+
+class File(object):
+  """ A file object capable of being encrypted, decrypted and synced
+  """
+  # TODO: check that the file exists
+
+  def __init__(self, path):
+    """ Returns a File whose path is path
+    """
+    self.path = path
+
+  def encrypt(self, file_enc):
+    """ Encrypts the file to a given file
+        using gpg directly on bash
+    """
+    # TODO: pass user and encryption details as a parameter 
+    cmd = 'gpg -e -r aaf@zenux --trust-model always --output ' + file_enc + ' ' + self.path
+    cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
+
+
+  def decrypt(self, file_enc):
+    """ Decrypts file back to original path
+    """
+    #cmd = 'gpg -d --output ' + self.path + '.dec ' + file_enc
+    cmd = 'gpg -d -o /home/aaf/k2.kdbx ' + file_enc
+    cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
+    
