@@ -10,12 +10,12 @@ class File(object):
     """
     self.path = path
 
-  def encrypt(self, file_enc):
+  def encrypt(self, file_enc, key):
     """ Encrypts the file to a given file
         using gpg directly on bash
     """
     # TODO: pass user and encryption details as a parameter 
-    cmd = 'gpg -e -r aaf@zenux --trust-model always --output ' + file_enc + ' ' + self.path
+    cmd = 'gpg -e -r ' + key.id + ' --trust-model always --output ' + file_enc + ' ' + self.path
     cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
 
 

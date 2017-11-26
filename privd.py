@@ -20,9 +20,9 @@ from privd_files import File as File
 if __name__ == "__main__":
   newfile = File('/home/aaf/keepass2DB.kdbx')
   config = Config()
-  keys = Key(config.keys_folder)
+  key = Key(config.key_email)
 
-  newfile.encrypt(newfile.path + '.enc')
+  newfile.encrypt(newfile.path + '.enc', key)
   time.sleep(2)
   newfile.decrypt(newfile.path + '.enc')
 

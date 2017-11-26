@@ -14,6 +14,11 @@ class Config(object):
             self.main_folder = load['main_folder'].replace('$HOME', os.environ['HOME'])
         except KeyError as exc:
             self.main_folder = os.environ['HOME'] + "/.privd"
+        #KEY EMAIL
+        try:
+            self.key_email = load['key_email']
+        except KeyError as exc:
+            self.key_email = "default@privd.foo"
         #KEYS FOLDER
         try:
             self.keys_folder = self.main_folder + load['keys_folder']
