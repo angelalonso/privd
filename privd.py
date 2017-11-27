@@ -18,9 +18,10 @@ from privd_files import File as File
 
 
 if __name__ == "__main__":
-  newfile = File('/home/aaf/keepass2DB.kdbx')
+  #newfile = File('/home/aaf/keepass2DB.kdbx')
   config = Config()
   key = Key(config.key_email)
+  print(config.main_folder)
 
   #newfile.encrypt(newfile.path + '.enc', key)
   #time.sleep(2)

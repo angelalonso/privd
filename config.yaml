@@ -1,11 +1,13 @@
 ---
-main_folder: '$HOME/.privd'
-# Default is $HOME/.privd/keys
+# TODO: clean up with what's not needed
+main_folder: '$HOME/.privd/TEST'
+enc_folder: '$HOME/.privd/TEST/enc'
 # This folder is relative to main_folder
+# can it be deleted?
 keys_folder: '/keys_aux'
 key_email: 'privd@privd.foo'
 folders:
   - name: 'main'
-    path: '$HOME/Privd'
+    path: '$HOME/.privd/TEST/source'
   - name: 'main_2'
-    path: '$HOME/Privd_b'
+    path: '$HOME/.privd/TEST/source_2'
