@@ -1,4 +1,5 @@
 import gnupg
+import subprocess
 """
 Class to manage keys used for encryption and decryption
 
@@ -12,14 +13,26 @@ class Key(object):
   def __init__(self, key_email):
     """ Returns a File whose path is path
     """
-    # TODO: check if email's key exists, if not, create it
-    self.id = key_email
+    #self.id = key_email
+    self.id = 'aux@foo.foo'
+
+    checkcmd = 'gpg --list-keys ' + self.id + ' | grep pub'
+    try:
+      subprocess.check_output([checkcmd], shell=True)
+      print('Key FOUND')
+    except subprocess.CalledProcessError as e:
+      #TODO: ask user for confirmation before we create it?
+      print('Key not found, generating...')
+      self.create_key()
+
 
   def create_key(self):
     # TODO: create key with bash instead
-    self.key_input = self.gpg.gen_key_input(
-      key_type='RSA',
-      key_length=4096)
+    key_config = 'Key-Type: RSA\n Key-Length: 4096\n Name-Real: Privd Key\n Name-Email: ' + self.id + '\n Expire-Date: 0'
+    key_config_file = './key.config'
+    key_config_buffer = open(key_config_file,"w")
+    key_config_buffer.write(key_config)
+    key_config_buffer.close()
 
-    self.key = self.gpg.gen_key(self.key_input)
-
+    cmd = 'gpg --batch --gen-key ' + key_config_file
+    cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
