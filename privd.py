@@ -15,6 +15,7 @@ import subprocess
 from privd_config import Config
 from privd_keys import Key as Key
 from privd_files import File as File
+from privd_syncer import Syncer as Syncer
 
 
 if __name__ == "__main__":
@@ -22,6 +23,8 @@ if __name__ == "__main__":
   config = Config()
   key = Key(config.key_email)
   print(config.main_folder)
+
+  syncer = Syncer(config)
 
   #newfile.encrypt(newfile.path + '.enc', key)
   #time.sleep(2)
