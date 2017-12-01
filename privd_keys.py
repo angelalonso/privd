@@ -19,7 +19,8 @@ class Key(object):
     checkcmd = 'gpg --list-keys ' + self.id + ' | grep pub'
     try:
       subprocess.check_output([checkcmd], shell=True)
-      print('Key FOUND')
+      # Use logging instead
+      #print('Key FOUND')
     except subprocess.CalledProcessError as e:
       #TODO: ask user for confirmation before we create it?
       print('Key not found, generating...')

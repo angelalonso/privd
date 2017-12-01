@@ -22,7 +22,6 @@ if __name__ == "__main__":
   #newfile = File('/home/aaf/keepass2DB.kdbx')
   config = Config()
   key = Key(config.key_email)
-  print(config.main_folder)
 
   syncer = Syncer(config)
 
