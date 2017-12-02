@@ -18,6 +18,7 @@ class Syncer(object):
     for folder in config.folders:
       self.folder_initialize(folder['path'])
       self.folder_encrypt(folder['path'], config.enc_folder, key)
+      self.folder_decrypt(folder['path'], config.enc_folder, key)
 
   def folder_initialize(self, path):
     if not os.path.exists(path):
@@ -34,25 +35,29 @@ class Syncer(object):
       os.makedirs(enc_path)
 
     for obj in objects:
-      enc_obj = obj.replace(path, enc_folder + "/" + path)
+      enc_obj_path = obj.replace(path, enc_folder + "/" + path)
       if os.path.isfile(obj):
-        enc_file = File(obj)
+        managed_file = File(obj)
         # TODO: overwrite!
-        enc_file.encrypt(enc_obj, key)
+        managed_file.encrypt(enc_obj_path, key)
         # TODO:
         # Check data, store it into a file AND an object
         #   - hash
         #   - last modified
-        print(enc_obj)
       elif os.path.isdir(obj):
-        if not os.path.exists(enc_obj):
-          os.makedirs(enc_obj)
+        if not os.path.exists(enc_obj_path):
+          os.makedirs(enc_obj_path)
 
 
   #TODO: do this actually
+  # TODO: use better var names, check if overwrite or not, create dirs
   def folder_decrypt(self, path, enc_folder, key):
     objects = glob.glob(path + "/**/*", recursive=True)
 
     # Create the folder as such within the enc folder
     enc_path = path.replace(path, enc_folder + "/" + path)
-
+    for obj in objects:
+      enc_obj = obj.replace(path, enc_folder + "/" + path)
+      dec_file = File(obj)
+      dec_file.decrypt(enc_obj)
+      

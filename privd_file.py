@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 class File(object):
   """ A file object capable of being encrypted, decrypted and synced
@@ -15,6 +16,9 @@ class File(object):
         using gpg directly on bash
     """
     # TODO: pass user and encryption details as a parameter 
+
+    # whatever there is, remove it first
+    os.remove(file_enc)
     cmd = 'gpg -e -r ' + key.id + ' --trust-model always --output ' + file_enc + ' ' + self.path
     cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
 
@@ -23,6 +27,6 @@ class File(object):
     """ Decrypts file back to original path
     """
     #cmd = 'gpg -d --output ' + self.path + '.dec ' + file_enc
-    cmd = 'gpg -d -o /home/aaf/k2.kdbx ' + file_enc
+    cmd = 'gpg -d -o ' + self.path + ' ' + file_enc
     cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
     
