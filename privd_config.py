@@ -15,6 +15,11 @@ class Config(object):
             self.main_folder = cpath(load['main_folder'])
         except KeyError as exc:
             self.main_folder = os.environ['HOME'] + "/.privd"
+        #MAIN FOLDER
+        try:
+            self.enc_folder = cpath(load['enc_folder'])
+        except KeyError as exc:
+            self.enc_folder = self.main_folder + "/enc"
         #KEY EMAIL
         try:
             self.key_email = load['key_email']

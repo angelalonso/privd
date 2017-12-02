@@ -2,6 +2,9 @@ import subprocess
 import os
 import glob
 
+from privd_file import File as File
+
+
 class Syncer(object):
   """ A syncer object which contains:
   folders to be encrypted
@@ -9,12 +12,12 @@ class Syncer(object):
   details to identify newer versions -> Moved to Files maybe?
   """
 
-  def __init__(self, config):
+  def __init__(self, config, key):
     """ Returns a File whose path is path
     """
     for folder in config.folders:
       self.folder_initialize(folder['path'])
-      self.folder_encrypt(folder['path'])
+      self.folder_encrypt(folder['path'], config.enc_folder, key)
 
   def folder_initialize(self, path):
     if not os.path.exists(path):
@@ -22,16 +25,27 @@ class Syncer(object):
     elif os.path.isfile(path):
       print("Error! Folder name " + path + " already exists and it's a file")
 
-  def folder_encrypt(self, path):
+  def folder_encrypt(self, path, enc_folder, key):
     objects = glob.glob(path + "/**/*", recursive=True)
 
+    # Create the folder as such within the enc folder
+    enc_path = path.replace(path, enc_folder + "/" + path)
+    if not os.path.exists(enc_path):
+      os.makedirs(enc_path)
+
     for obj in objects:
+      enc_obj = obj.replace(path, enc_folder + "/" + path)
       if os.path.isfile(obj):
+        enc_file = File(obj)
+        enc_file.encrypt(enc_obj, key)
         # encrypt the shit out of it
         # Check data, store it into a file AND an object
         #   - hash
         #   - last modified
-        print(obj)
+        print(enc_obj)
+      elif os.path.isdir(obj):
+        if not os.path.exists(enc_obj):
+          os.makedirs(enc_obj)
 
 
 
