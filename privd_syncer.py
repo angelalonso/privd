@@ -37,8 +37,9 @@ class Syncer(object):
       enc_obj = obj.replace(path, enc_folder + "/" + path)
       if os.path.isfile(obj):
         enc_file = File(obj)
+        # TODO: overwrite!
         enc_file.encrypt(enc_obj, key)
-        # encrypt the shit out of it
+        # TODO:
         # Check data, store it into a file AND an object
         #   - hash
         #   - last modified
@@ -48,5 +49,10 @@ class Syncer(object):
           os.makedirs(enc_obj)
 
 
+  #TODO: do this actually
+  def folder_decrypt(self, path, enc_folder, key):
+    objects = glob.glob(path + "/**/*", recursive=True)
 
+    # Create the folder as such within the enc folder
+    enc_path = path.replace(path, enc_folder + "/" + path)
 

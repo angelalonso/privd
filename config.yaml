@@ -1,7 +1,7 @@
 ---
 # TODO: clean up with what's not needed
-main_folder: '$HOME/.privd/TEST'
-enc_folder: '$HOME/.privd/TEST/enc'
+main_folder: '$HOME/Dropbox/.privd'
+enc_folder: '$HOME/Dropbox/.privd/enc'
 # This folder is relative to main_folder
 # can it be deleted?
 keys_folder: '/keys_aux'
