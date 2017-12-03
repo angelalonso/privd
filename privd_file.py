@@ -55,19 +55,21 @@ class File(object):
         md5 = hashlib.md5()
         sha1 = hashlib.sha1()
 
-        with open(self.path, 'rb') as f:
-            while True:
-                data = f.read(BUF_SIZE)
-                if not data:
-                    break
-                md5.update(data)
-                sha1.update(data)
+        try:
+            with open(self.path, 'rb') as f:
+                while True:
+                    data = f.read(BUF_SIZE)
+                    if not data:
+                        break
+                    md5.update(data)
+                    sha1.update(data)
+            log.debug("MD5: {0}".format(md5.hexdigest()))
+            log.debug("SHA1: {0}".format(sha1.hexdigest()))
+            stats_buffer = os.stat(self.path)
+            log.debug("Last modified: {}".format(stats_buffer.st_mtime))
+        except FileNotFoundError:
+            log.debug("File " + self.path + " does not exist")
 
-        log.debug("MD5: {0}".format(md5.hexdigest()))
-        log.debug("SHA1: {0}".format(sha1.hexdigest()))
-
-        stats_buffer = os.stat(self.path)
-        log.debug("Last modified: {}".format(stats_buffer.st_mtime))
 
 
 

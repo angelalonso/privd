@@ -19,13 +19,6 @@ class Syncer(object):
         """
         for folder in config.folders:
             self.folder_initialize(folder['path'])
-            # This should not go here, but depend on parameters
-            self.folder_encrypt(folder['path'], config.enc_folder, key)
-            log.debug("Waiting a sec...")
-            time.sleep(1)
-
-            # This should not go here, but depend on parameters
-            self.folder_decrypt(folder['path'], config.enc_folder, key)
 
 
     def folder_initialize(self, path):
@@ -40,13 +33,13 @@ class Syncer(object):
         objects = glob.glob(path + "/**/*", recursive=True)
 
         # Create the folder as such within the enc folder
-        enc_path = path.replace(path, enc_folder + "/" + path)
+        enc_path = path.replace(path, enc_folder + path)
         if not os.path.exists(enc_path):
             log.debug("Creating folder " + enc_path)
             os.makedirs(enc_path)
 
         for obj in objects:
-            enc_obj_path = obj.replace(path, enc_folder + "/" + path)
+            enc_obj_path = obj.replace(path, enc_folder + path) + '.gpg'
             if os.path.isfile(obj):
                 managed_file = File(obj)
                 managed_file.encrypt(enc_obj_path, key)
@@ -70,7 +63,7 @@ class Syncer(object):
             os.makedirs(path)
         for obj in objects:
             log.debug(obj)
-            dec_obj_path = obj.replace(enc_folder + path, path)
+            dec_obj_path = obj.replace(enc_folder + path, path).replace('.gpg','')
             log.debug(dec_obj_path)
             if os.path.isfile(obj):
                 managed_file = File(dec_obj_path)
