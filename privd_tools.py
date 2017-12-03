@@ -1,5 +1,8 @@
 import os
 
 def correct_path(path):
-  new_path = path.replace('$HOME', os.environ['HOME'])
-  return new_path
+    """ TOOL to replace environment variables on the go
+    """
+    # TODO: identify other environment vars (from $ to ...)
+    new_path = path.replace('$HOME', os.environ['HOME'])
+    return new_path
