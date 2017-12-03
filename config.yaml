@@ -6,5 +6,5 @@ key_email: 'privd@privd.foo'
 folders:
   - name: 'main'
     path: '$HOME/.privd/TEST/source'
-#  - name: 'main_2'
-#    path: '$HOME/.privd/TEST/source_2'
+  - name: 'main_2'
+    path: '$HOME/.privd/TEST/source_2'

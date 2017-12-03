@@ -12,20 +12,20 @@ from privd_syncer import Syncer as Syncer
 
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
 
-  parser.add_argument('-v', '--verbose', help='Show higher level of verbosity', required=False, action='store_true')
+    parser.add_argument('-v', '--verbose', help='Show higher level of verbosity', required=False, action='store_true')
 
-  args = vars(parser.parse_args())
+    args = vars(parser.parse_args())
 
-  if args['verbose']:
-    log.basicConfig(format="%(levelname)s: %(message)s", level=log.DEBUG)
-  else:
-    log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
+    if args['verbose']:
+        log.basicConfig(format="%(levelname)s: %(message)s", level=log.DEBUG)
+    else:
+        log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
 
-  config = Config()
+    config = Config()
 
-  key = Key(config.key_email)
+    key = Key(config.key_email)
 
-  syncer = Syncer(config, key)
+    syncer = Syncer(config, key)
   
