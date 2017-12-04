@@ -17,6 +17,7 @@ class Syncer(object):
     def __init__(self, config, key):
         """ Returns a File whose path is path
         """
+        log.debug("Using " + config.status_file_path + " to keep track of files")
         for folder in config.folders:
             self.folder_initialize(folder['path'])
 

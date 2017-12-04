@@ -43,3 +43,15 @@ class Config(object):
             log.debug("Using default E-Mail for GPG Key")
         log.debug("E-Mail for GPG Key: " + self.key_email)
 
+        try:
+            self.status_folder = load['status_folder']
+        except KeyError as exc:
+            self.status_folder = self.main_folder
+            log.debug("Using default folder for the status file")
+        try:
+            self.status_file = load['status_file']
+        except KeyError as exc:
+            self.status_file = ".status"
+            log.debug("Using default filename for status file")
+        self.status_file_path = cpath(self.status_folder + "/" + self.status_file)
+        log.debug("Status file: " + self.status_file_path)

@@ -3,6 +3,9 @@
 main_folder: '$HOME/Dropbox/.privd'
 enc_folder: '$HOME/Dropbox/.privd/enc'
 key_email: 'privd@privd.foo'
+# uncomment this to change default (main_folder)
+# status_folder: '$HOME/Dropbox/.privd'
+status_file: '.status'
 folders:
   - name: 'main'
     path: '$HOME/.privd/TEST/source'
