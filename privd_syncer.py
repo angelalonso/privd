@@ -12,6 +12,7 @@ from privd_file import File as File
 class Status(object):
     def __init__(self, statusfile):
         self.folders = {}
+        self.statusfile_folders = {}
         self.statusfile = statusfile
 
     def add_folder(self, path):
@@ -33,6 +34,15 @@ class Status(object):
         log.debug("Status file: " + self.statusfile)
         with open(self.statusfile, 'w') as outfile:
             yaml.dump(self.folders, outfile, default_flow_style=False)
+
+    def read_status_file(self):
+        with open(self.statusfile, 'r') as stream:
+            try:
+                self.statusfile_folders = yaml.load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+        log.debug("#-------------------------# TESTING")
+        log.debug(self.statusfile_folders)
 
 
 class Syncer(object):
@@ -94,6 +104,7 @@ class Syncer(object):
         log.debug(self.status.get_objects())
         log.debug("########################### TESTING")
         self.status.write_status_file()
+        self.status.read_status_file()
 
 
 
