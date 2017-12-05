@@ -1,31 +1,38 @@
+import gc
 import glob
 import logging as log
 import os
 import subprocess
 import time
+import yaml
 
 from privd_file import File as File
 
 # TODO: create a class to store status
 class Status(object):
-    def __init__(self, path):
-        self.path = path
-        self.object = {}
+    def __init__(self, statusfile):
+        self.folders = {}
+        self.statusfile = statusfile
 
-    def add_object(self, object):
-        self.object[object] = {}
+    def add_folder(self, path):
+        self.folders[path] = {}
 
-    def add_encrypted_path(self, object, encrypted_path):
-        self.object[object]['encrypted_path'] = encrypted_path
+    def add_file(self, path, file):
+        self.folders[path][file] = {}
 
-    def add_encrypted_file_timestamp(self, object, timestamp):
-        self.object[object]['encrypted_file_timestamp'] = timestamp
+    def add_encrypted_path(self, path, file, encrypted_path):
+        self.folders[path][file]['encrypted_path'] = encrypted_path
 
-    def get_path(self):
-        return self.path
+    def add_encrypted_file_timestamp(self, path, file, timestamp):
+        self.folders[path][file]['encrypted_file_timestamp'] = timestamp
 
     def get_objects(self):
-        return self.object
+        return self.folders
+
+    def write_status_file(self):
+        log.debug("Status file: " + self.statusfile)
+        with open(self.statusfile, 'w') as outfile:
+            yaml.dump(self.folders, outfile, default_flow_style=False)
 
 
 class Syncer(object):
@@ -38,7 +45,7 @@ class Syncer(object):
     def __init__(self, config, key):
         """ Returns a File whose path is path
         """
-        self.status = {}
+        self.status = Status(config.status_file_path)
         log.debug("Using " + config.status_file_path + " to keep track of files")
         for folder in config.folders:
             self.folder_initialize(folder['path'])
@@ -50,9 +57,7 @@ class Syncer(object):
             os.makedirs(path)
         elif os.path.isfile(path):
             log.debug("Error! Folder name " + path + " already exists and it's a file")
-        self.status[path] = Status(path)
-        log.debug("#-#-#-#-#-#-#-#-#-#-#-#-#-# TESTING")
-        log.debug(self.status[path].get_path())
+        self.status.add_folder(path)
 
 
     def folder_encrypt(self, path, enc_folder, key):
@@ -65,9 +70,7 @@ class Syncer(object):
             os.makedirs(enc_path)
 
         for obj in objects:
-            self.status[path].add_object(obj)
-            log.debug("#-#-#-#-#-#-#-#-#-#-#-#-#-# TESTING")
-            log.debug(self.status[path].get_objects())
+            self.status.add_file(path, obj)
             enc_obj_path = obj.replace(path, enc_folder + path) + '.gpg'
             if os.path.isfile(obj):
                 managed_file = File(obj)
@@ -75,8 +78,8 @@ class Syncer(object):
                 # This is needed because the encryption takes a bit. 100 is a random number really
                 for i in range(1000):
                     try:
-                        self.status[path].add_encrypted_path(obj, enc_obj_path)
-                        self.status[path].add_encrypted_file_timestamp(obj, format(os.stat(enc_obj_path).st_mtime))
+                        self.status.add_encrypted_path(path, obj, enc_obj_path)
+                        self.status.add_encrypted_file_timestamp(path, obj, format(os.stat(enc_obj_path).st_mtime))
                     except FileNotFoundError:
                         continue
                     break
@@ -88,8 +91,10 @@ class Syncer(object):
                 if not os.path.exists(enc_obj_path):
                     os.makedirs(enc_obj_path)
         log.debug("########################### TESTING" + path + " - " + obj)
-        log.debug(self.status[path].get_objects())
+        log.debug(self.status.get_objects())
         log.debug("########################### TESTING")
+        self.status.write_status_file()
+
 
 
     def folder_decrypt(self, path, enc_folder, key):
