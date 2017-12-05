@@ -3,6 +3,8 @@ import logging as log
 import yaml
 from privd_tools import correct_path as cpath
 
+#TODO: Store paths with $HOME, use cpath ONLY when accessing the files and folders themselves!
+
 class Config(object):
     """ A config object containing all values required
           It reads from a file and sets default values for the missing ones
