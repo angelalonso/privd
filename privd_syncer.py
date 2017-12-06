@@ -14,6 +14,7 @@ class Status(object):
         self.folders = {}
         self.statusfile_folders = {}
         self.statusfile = statusfile
+        read_status_file()
 
     def add_folder(self, path):
         self.folders[path] = {}
@@ -40,9 +41,7 @@ class Status(object):
             try:
                 self.statusfile_folders = yaml.load(stream)
             except yaml.YAMLError as exc:
-                print(exc)
-        log.debug("#-------------------------# TESTING")
-        log.debug(self.statusfile_folders)
+                log.error(exc)
 
 
 class Syncer(object):
