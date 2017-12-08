@@ -1,7 +1,7 @@
 import os
 import logging as log
 import yaml
-from privd_tools import correct_path as cpath
+from tools import correct_path as cpath
 
 #TODO: Store paths with $HOME, use cpath ONLY when accessing the files and folders themselves!
 
@@ -16,27 +16,27 @@ class Config(object):
             load = yaml.safe_load(stream)
 
         try:
-            self.main_folder = cpath(load['main_folder'])
+            self.mainfolder = cpath(load['mainfolder'])
         except KeyError as exc:
-            self.main_folder = os.environ['HOME'] + "/.privd"
+            self.mainfolder = os.environ['HOME'] + "/.privd"
             log.debug("Using default Main folder")
-        log.debug("Main folder: " + self.main_folder)
+        log.debug("Main folder: " + self.mainfolder)
 
         try:
-            self.enc_folder = cpath(load['enc_folder'])
+            self.enc_mainfolder = cpath(load['enc_mainfolder'])
         except KeyError as exc:
-            self.enc_folder = self.main_folder + "/enc"
+            self.enc_mainfolder = self.mainfolder + "/enc"
             log.debug("Using default folder for encrypted files")
-        log.debug("Folder for encrypted files: " + self.enc_folder)
+        log.debug("Folder for encrypted files: " + self.enc_mainfolder)
 
         try:
-            self.folders = load['folders']
-            for folder in self.folders:
+            self.dec_folders = load['folders']
+            for folder in self.dec_folders:
               folder['path'] = cpath(folder['path'])
         except KeyError as exc:
-            self.folders = []
+            self.dec_folders = []
             log.debug("Empty set of Folders to encrypt")
-        log.debug("Folders to encrypt: " + str(self.folders))
+        log.debug("Folders to encrypt: " + str(self.dec_folders))
 
         try:
             self.key_email = load['key_email']
@@ -48,12 +48,12 @@ class Config(object):
         try:
             self.status_folder = load['status_folder']
         except KeyError as exc:
-            self.status_folder = self.main_folder
+            self.status_folder = self.mainfolder
             log.debug("Using default folder for the status file")
         try:
-            self.status_file = load['status_file']
+            self.statusfile = load['statusfile']
         except KeyError as exc:
-            self.status_file = ".status"
+            self.statusfile = ".status"
             log.debug("Using default filename for status file")
-        self.status_file_path = cpath(self.status_folder + "/" + self.status_file)
-        log.debug("Status file: " + self.status_file_path)
+        self.statusfile_path = cpath(self.status_folder + "/" + self.statusfile)
+        log.debug("Status file: " + self.statusfile_path)

@@ -1,11 +1,11 @@
 ---
 # TODO: clean up with what's not needed
-main_folder: '$HOME/Dropbox/.privd'
-enc_folder: '$HOME/Dropbox/.privd/enc'
+mainfolder: '$HOME/Dropbox/.privd'
+enc_mainfolder: '$HOME/Dropbox/.privd/enc'
 key_email: 'privd@privd.foo'
 # uncomment this to change default (main_folder)
 # status_folder: '$HOME/Dropbox/.privd'
-status_file: '.status'
+statusfile: '.status'
 folders:
   - name: 'main'
     path: '$HOME/.privd/TEST/source'

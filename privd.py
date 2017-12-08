@@ -6,9 +6,9 @@ import gnupg
 import logging as log
 import time
 import subprocess
-from privd_config import Config
-from privd_keys import Key as Key
-from privd_syncer import Syncer as Syncer
+from configs import Config
+from keys import Key as Key
+from syncers import Syncer as Syncer
 
 
 if __name__ == "__main__":
@@ -42,9 +42,5 @@ if __name__ == "__main__":
     elif args['auto']:
         # either syncer init initializes folders, or syncer.encrypt does
         syncer = Syncer(config, key)
-        for folder in config.folders:
-            syncer.folder_encrypt(folder['path'], config.enc_folder, key)
-            log.debug("Waiting a sec")
-            time.sleep(1)
-            syncer.folder_decrypt(folder['path'], config.enc_folder, key)
+        syncer.auto()
   
