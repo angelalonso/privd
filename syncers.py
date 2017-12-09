@@ -6,6 +6,7 @@ import sys
 import time
 
 from files import File as File
+from tools import get_hash as hash
 from tools import get_timestamp as tstamp
 from status import Status
 
@@ -36,12 +37,59 @@ class Syncer(object):
 
         self.status.load_statusfile()
 
-        for folder in self.config.dec_folders:
-            self.folder_encrypt(folder['path'], self.config.enc_mainfolder, self.key)
-            log.debug("Waiting a sec")
-            time.sleep(1)
-            self.folder_decrypt(folder['path'], self.config.enc_mainfolder, self.key)
+        files, not_in_dec, not_in_enc, in_both = self.status.compare()
+        log.debug("FILES NOT IN DEC")
+        log.debug(not_in_dec)
+        log.debug("FILES NOT IN ENC")
+        log.debug(not_in_enc)
+        log.debug("FILES IN BOTH")
+        log.debug(in_both)
 
+        # TODO: check details again?
+
+        # Case #1: Files in remote are not in local
+        for file in not_in_dec:
+            managed_file = File(file)
+            # TODO: overwrite dec_folders' encrypted_path with the one from enc_folders
+            log.debug("decrypting " + file + " from " + self.status.enc_folders[self.status.get_folder(file,self.status.enc_folders)][file]['encrypted_path'])
+            managed_file.decrypt(self.status.enc_folders[self.status.get_folder(file,self.status.enc_folders)][file]['encrypted_path'])
+
+        # Case #2: Files in local are not in remote
+        for file in not_in_enc:
+            managed_file = File(file)
+            path = self.status.get_folder(file,self.status.dec_folders)
+            enc_file_path = file.replace(path, self.config.enc_mainfolder + path) + '.gpg'
+            log.debug("encrypting " + file + " into " + enc_file_path)
+            managed_file.encrypt(enc_file_path, self.key)
+            # This is needed because the encryption takes a bit. 100 is a random number really
+            for i in range(1000):
+                try:
+                    self.status.add_encrypted_file(path, file, enc_file_path)
+                except FileNotFoundError:
+                    continue
+                break
+        self.status.write_statusfile()
+        self.status.load_statusfile()
+
+        # Case #3: Files in both
+        for file in in_both:
+            folder = self.status.get_folder(file,self.status.enc_folders)
+            dec_details = self.status.dec_folders[folder][file]
+            enc_details = self.status.enc_folders[folder][file]
+            #a) modification for both
+            log.debug("HASH of " + file)
+            log.debug(dec_details['file_checksum'] + " vs " + enc_details['file_checksum'])
+            log.debug(hash(file))
+
+            if self.status.enc_folders[self.status.get_folder(file,self.status.enc_folders)][file]['file_timestamp'] > self.status.dec_folders[self.status.get_folder(file,self.status.dec_folders)][file]['file_timestamp']:
+                log.debug("remote is newer")
+            else:
+                log.debug("local is better")
+
+
+       # self.status.write_statusfile()
+       # self.status.load_statusfile()
+            
 
     def folder_initialize(self, path):
         if not os.path.exists(path):
@@ -52,7 +100,7 @@ class Syncer(object):
         self.status.add_folder(path)
         objects = glob.glob(path + "/**/*", recursive=True)
         for obj in objects:
-            self.status.add_file(path, obj, tstamp(obj))
+            self.status.add_file(path, obj)
 
 
     def folder_encrypt(self, path, enc_mainfolder, key):
@@ -65,7 +113,7 @@ class Syncer(object):
             os.makedirs(enc_path)
 
         for obj in objects:
-            self.status.add_file(path, obj, tstamp(obj))
+            self.status.add_file(path, obj)
             enc_obj_path = obj.replace(path, enc_mainfolder + path) + '.gpg'
             if os.path.isfile(obj):
                 managed_file = File(obj)
@@ -73,8 +121,7 @@ class Syncer(object):
                 # This is needed because the encryption takes a bit. 100 is a random number really
                 for i in range(1000):
                     try:
-                        self.status.add_encrypted_path(path, obj, enc_obj_path)
-                        self.status.add_encrypted_file_timestamp(path, obj, tstamp(enc_obj_path))
+                        self.status.add_encrypted_file(path, obj, enc_obj_path)
                     except FileNotFoundError:
                         continue
                     break
