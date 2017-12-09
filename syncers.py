@@ -34,6 +34,15 @@ class Syncer(object):
             self.status.write_statusfile()
 
 
+    def refresh(self):
+        for folder in self.config.dec_folders:
+            self.folder_initialize(folder['path'])
+ 
+        objects = glob.glob(folder['path'] + "/**/*", recursive=True)
+        for obj in objects:
+            self.status.add_file(folder['path'], obj)
+
+
     def auto(self):
 
         self.status.load_statusfile()

@@ -1,5 +1,6 @@
 import hashlib
 import os
+import logging as log
 
 def correct_path(path):
     """ TOOL to replace environment variables on the go
@@ -12,7 +13,10 @@ def get_encrypted_file_path(file, config, path):
     return file.replace(path, config.enc_mainfolder + path) + '.gpg'
 
 def get_timestamp(file):
-    return format(os.stat(file).st_mtime)
+    if os.path.isfile(file):
+        return format(os.stat(file).st_mtime)
+    else:
+        return ''
 
 def get_newer(dict1, dict2, value):
     """Given two dicts, it returns the dict name which value is higher (meant for use with timestamps)
@@ -42,6 +46,7 @@ def get_hash(file):
         file_sha1 = "{0}".format(sha1.hexdigest())
     except FileNotFoundError: 
         log.debug("File " + file + " does not exist")
+        file_sha1 = ''
                               
     return file_sha1
 
