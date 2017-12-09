@@ -68,8 +68,6 @@ class Syncer(object):
                 except FileNotFoundError:
                     continue
                 break
-        self.status.write_statusfile()
-        self.status.load_statusfile()
 
         # Case #3: Files in both
         for file in in_both:

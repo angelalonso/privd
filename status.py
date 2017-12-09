@@ -37,6 +37,7 @@ class Status(object):
                 return folder
 
     def write_statusfile(self):
+        print("WRITING ###############################")
         log.debug("Status file: " + self.config.statusfile_path)
         with open(self.config.statusfile_path, 'w') as outfile:
             yaml.dump(self.dec_folders, outfile, default_flow_style=False)
