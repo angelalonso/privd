@@ -7,6 +7,7 @@ import time
 
 from files import File as File
 from tools import get_hash as hash
+from tools import get_newer as newer
 from tools import get_timestamp as tstamp
 from status import Status
 
@@ -75,18 +76,29 @@ class Syncer(object):
             dec_details = self.status.dec_folders[folder][file]
             enc_details = self.status.enc_folders[folder][file]
             #a) modification for both
-            log.debug("HASH of " + file)
-            log.debug(dec_details['file_checksum'] + " vs " + enc_details['file_checksum'])
-            log.debug(hash(file))
+            if dec_details['file_checksum'] != enc_details['file_checksum']:
+                if dec_details['file_timestamp'] >= enc_details['file_timestamp']:
+                    managed_file = File(file)                                                                                                                
+                    path = self.status.get_folder(file,self.status.dec_folders)                                                                              
+                    enc_file_path = file.replace(path, self.config.enc_mainfolder + path) + '.gpg'                                                           
+                    log.debug("encrypting " + file + " into " + enc_file_path)                                                                               
+                    managed_file.encrypt(enc_file_path, self.key)                                                                                            
+                    # This is needed because the encryption takes a bit. 100 is a random number really                                                       
+                    for i in range(1000):                                                                                                                    
+                        try:                                                                                                                                 
+                            self.status.add_encrypted_file(path, file, enc_file_path)                                                                        
+                        except FileNotFoundError:                                                                                                            
+                            continue                                                                                                                         
+                        break        
+                else:
+                    managed_file = File(file)
+                    # TODO: overwrite dec_folders' encrypted_path with the one from enc_folders
+                    log.debug("decrypting " + file + " from " + self.status.enc_folders[self.status.get_folder(file,self.status.enc_folders)][file]['encrypted_path'])
+                    managed_file.decrypt(self.status.enc_folders[self.status.get_folder(file,self.status.enc_folders)][file]['encrypted_path'])
 
-            if self.status.enc_folders[self.status.get_folder(file,self.status.enc_folders)][file]['file_timestamp'] > self.status.dec_folders[self.status.get_folder(file,self.status.dec_folders)][file]['file_timestamp']:
-                log.debug("remote is newer")
-            else:
-                log.debug("local is better")
 
 
-       # self.status.write_statusfile()
-       # self.status.load_statusfile()
+        self.status.write_statusfile()
             
 
     def folder_initialize(self, path):

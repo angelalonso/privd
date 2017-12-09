@@ -1,5 +1,6 @@
 import logging as log
 import yaml
+from tools import get_encrypted_file_path as enc_path
 from tools import get_hash as hash
 from tools import get_timestamp as tstamp
 
@@ -22,6 +23,10 @@ class Status(object):
         self.dec_folders[path][file] = {}
         self.dec_folders[path][file]['file_timestamp'] = tstamp(file)
         self.dec_folders[path][file]['file_checksum'] = hash(file)
+        encrypted_path = enc_path(file, self.config, path)
+        self.dec_folders[path][file]['encrypted_path'] = encrypted_path
+        self.dec_folders[path][file]['encrypted_file_timestamp'] = tstamp(encrypted_path)
+        self.dec_folders[path][file]['encrypted_file_checksum'] = hash(encrypted_path)
 
     def add_encrypted_file(self, path, file, encrypted_path):
         self.dec_folders[path][file]['encrypted_path'] = encrypted_path
@@ -37,8 +42,7 @@ class Status(object):
                 return folder
 
     def write_statusfile(self):
-        print("WRITING ###############################")
-        log.debug("Status file: " + self.config.statusfile_path)
+        log.debug("Writing to status file: " + self.config.statusfile_path)
         with open(self.config.statusfile_path, 'w') as outfile:
             yaml.dump(self.dec_folders, outfile, default_flow_style=False)
 
