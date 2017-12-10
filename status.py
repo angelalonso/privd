@@ -69,7 +69,11 @@ class Status(object):
             # Check if updated, then Do something with updated files
             for obj in object_set.intersection(registered_set):
                 if tstamp(obj) > self.local[sync_folder_path][obj]['local_file_timestamp']:
-                    log.debug(obj + " has changed locally")
+                    if not hash(obj) == self.local[sync_folder_path][obj]['local_file_checksum']:
+                        log.debug(obj + " has changed contents locally")
+                        self.set_local_file_record(sync_folder_path, obj, '')
+                    else:
+                        log.debug(obj + " has been updated locally but did not change")
 
 
             log.debug("EXISTS ######################################")
@@ -115,7 +119,9 @@ class Status(object):
         # TODO: error if it does not exist maybe?
         self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
         self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
-        self.local[sync_folder_path][local_file]['state'] = state
+        # Set no state to keep the same one
+        if not state == '':
+            self.local[sync_folder_path][local_file]['state'] = state
 
 
     def new_local_file(self, sync_folder_path, local_file): 
