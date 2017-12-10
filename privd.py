@@ -47,10 +47,8 @@ if __name__ == "__main__":
     elif args['loop']:
         # either syncer init initializes folders, or syncer.encrypt does
         syncer = Syncer(config, key)
-#        while True:
-#            syncer.auto()
-#            syncer.refresh()
-#            time.sleep(5)
-        syncer.auto()
-        syncer.refresh()
+        while True:
+            syncer.auto()
+            syncer.refresh()
+            time.sleep(5)
   

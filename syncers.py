@@ -73,26 +73,18 @@ class Syncer(object):
 
         # Case #2: Files in local are not in remote
         for file in not_in_enc:
-            print("#----------------------------------#" + file)
-            print(str(self.status.dec_folders))
-            print("#----------------------------------#")
             managed_file = File(file)
             path = self.status.get_folder(file,self.status.dec_folders)
             enc_file_path = file.replace(path, self.config.enc_mainfolder + path) + '.gpg'
             managed_file.encrypt(enc_file_path, self.key)
-            # This is needed because the encryption takes a bit. 100 is a random number really
-
-            print("##++++++++### " + str(self.status.dec_folders[path][file]))
+            # This is needed because the encryption takes a bit. 1000 is a random number really
             for i in range(1000):
-                try:
-                    self.status.add_file(path, file)
-                    #self.status.add_encrypted_file(path, file, self.status.dec_folders[file]['encrypted_path'])
-                except FileNotFoundError:
+                if not os.path.isfile(enc_file_path):
                     continue
+                #self.status.add_encrypted_file(path, file, self.status.dec_folders[file]['encrypted_path'])
+                self.status.add_file(path, file)
                 break
-            print("##++++++++### " + str(self.status.dec_folders[path][file]))
-        print("####################################")
-        print(str(self.status.dec_folders))
+
 
         # Case #3: Files in both
         for file in in_both:
