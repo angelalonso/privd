@@ -81,6 +81,13 @@ class Status(object):
             log.debug(self.get_local_files_w_state(sync_folder_path, ('recreated')))
 
 
+    def get_local_files(self, sync_folder_path):
+        result = set()
+        for file in self.local[sync_folder_path]:
+            result.add(file)
+        return result
+
+
     def get_local_files_w_state(self, sync_folder_path, state):
         result = set()
         for file in self.local[sync_folder_path]:
@@ -149,7 +156,18 @@ class Status(object):
 
 
     def update_remote(self):
+        self.get_remote()
+        # once remote is loaded, we compare, change(encrypt and update data), write statusfile again
         for sync_folder in self.config.folders:
+            sync_folder_path = sync_folder['path']
+            registered_local_set = self.get_local_files(sync_folder_path)
+            # TODO: get also the real remote files to compare
+            registered_remote_set = set()                        
+            for file in self.remote[sync_folder_path]: registered_remote_set.add(file)
+            print("--------------------------")
+            print(registered_local_set)
+            print("-------------")
+            print(registered_remote_set)
             print("--------------------------")
 #            sync_folder_path = sync_folder['path']
 #            objects = glob.glob(sync_folder_path + "/**/*", recursive=True)
