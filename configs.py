@@ -30,6 +30,15 @@ class Config(object):
         log.debug("Folder for encrypted files: " + self.enc_mainfolder)
 
         try:
+            self.folders = load['folders']
+            for folder in self.folders:
+              folder['path'] = cpath(folder['path'])
+        except KeyError as exc:
+            self.folders = []
+            log.debug("Empty set of Folders to encryptedly sync")
+        log.debug("Folders to encrypt: " + str(self.folders))
+        # TODO: remove these when the previous ones are ready:
+        try:
             self.dec_folders = load['folders']
             for folder in self.dec_folders:
               folder['path'] = cpath(folder['path'])

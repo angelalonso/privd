@@ -36,6 +36,8 @@ class Syncer(object):
         if not os.path.isfile(self.config.statusfile_path):
             self.status.write_statusfile()
 
+    def daemon(self):
+        print(self.status.local)
 
     def refresh(self):
         for folder in self.config.dec_folders:

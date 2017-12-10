@@ -1,4 +1,6 @@
+import glob
 import logging as log
+import os
 import yaml
 from tools import get_encrypted_file_path as enc_path
 from tools import get_hash as hash
@@ -8,6 +10,10 @@ class Status(object):
     def __init__(self, config):
         # Config coming from the syncer
         self.config = config
+        # Data for the local folders, new format
+        self.local = {}
+        self.get_local()
+        # TODO: remove both below
         # Data for the local, decrypted, folders
         # Changes go on this one, and we overwrite statusfile with it
         self.dec_folders = {}
@@ -15,6 +21,36 @@ class Status(object):
         # Only used for reference on what is in remote
         self.enc_folders = {}
 
+
+
+######################## NEW FOR daemon and new status files and dicts
+# TODO: use sync_folder instead of path everywhere, call them snyc_folders in config.yaml
+    def get_local(self):
+        for sync_folder in self.config.folders:
+            self.register_local_folder(sync_folder)
+
+
+    def register_local_folder(self, sync_folder):
+        sync_folder_path = sync_folder['path']
+        self.local[sync_folder_path] = {}
+        print(sync_folder['path'])
+        objects = glob.glob(sync_folder['path'] + "/**/*", recursive=True) 
+        for obj in objects:
+            if os.path.isfile(obj):
+                self.set_local_file_record(sync_folder_path, obj, 'exists')
+
+    def check_local_folder(self, sync):
+        pass
+
+    def set_local_file_record(self, sync_folder_path, local_file, state):
+        if local_file not in self.local[sync_folder_path]:
+            self.local[sync_folder_path][local_file] = {}
+        self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
+        self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
+        self.local[sync_folder_path][local_file]['state'] = state
+
+        
+######################## END OF NEW
 
     def add_folder(self, path):
         self.dec_folders[path] = {}
