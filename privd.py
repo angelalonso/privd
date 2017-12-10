@@ -1,5 +1,8 @@
 # TODO:
 # load, create and/or correct gpg keys
+# Create better different levels of logging messages (info, debug, error...)
+# USe $HOME to store, change to /home/user only when taking actions -> compatibility with Mac
+# Remove unused functions
 
 import argparse
 import gnupg
