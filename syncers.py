@@ -37,8 +37,13 @@ class Syncer(object):
             self.status.write_statusfile()
 
     def daemon(self):
+        self.status.refresh()
+        print("#######################")
         print(self.status.local)
+        print("---")
+        print(self.status.remote)
 
+    #TODO: remove when refresh has been moved to status
     def refresh(self):
         for folder in self.config.dec_folders:
             self.folder_initialize(folder['path'])

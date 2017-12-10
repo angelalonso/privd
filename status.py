@@ -13,6 +13,7 @@ class Status(object):
         # Data for the local folders, new format
         self.local = {}
         self.get_local()
+        self.get_remote()
         # TODO: remove both below
         # Data for the local, decrypted, folders
         # Changes go on this one, and we overwrite statusfile with it
@@ -25,22 +26,60 @@ class Status(object):
 
 ######################## NEW FOR daemon and new status files and dicts
 # TODO: use sync_folder instead of path everywhere, call them snyc_folders in config.yaml
+
+    def refresh(self):
+        self.update_local()
+        self.get_remote()
+
+
     def get_local(self):
         for sync_folder in self.config.folders:
             self.register_local_folder(sync_folder)
 
 
+    def update_local(self):
+        # TODO:
+        # Look for changes, new files, deleted files
+        for sync_folder in self.config.folders:
+            sync_folder_path = sync_folder['path']
+            objects = glob.glob(sync_folder['path'] + "/**/*", recursive=True)
+
+            all_files = []
+            object_list = []
+            #print("#### REAL FILES:")
+            for obj in objects:
+                if os.path.isfile(obj):
+                    object_list.append(obj)
+            registered_list = set(self.local[sync_folder_path])
+            print("#### LOCAL FILES:")
+            print(object_list)
+            print("#### REGISTERED FILES:")
+            print(registered_list)
+            # https://stackoverflow.com/questions/1319338/combining-two-lists-and-removing-duplicates-without-removing-duplicates-in-orig
+
+
+
+    def get_remote(self):
+        try:
+            with open(self.config.statusfile_path, 'r') as stream:
+                try:
+                    self.remote = yaml.load(stream)
+                except yaml.YAMLError as exc:
+                    log.error(exc)
+                    return("YAMLError")
+        except FileNotFoundError:
+            log.error("File " + self.config.statusfile_path + " does not exist")
+            return("FileNotFoundError")
+
+
     def register_local_folder(self, sync_folder):
         sync_folder_path = sync_folder['path']
         self.local[sync_folder_path] = {}
-        print(sync_folder['path'])
         objects = glob.glob(sync_folder['path'] + "/**/*", recursive=True) 
         for obj in objects:
             if os.path.isfile(obj):
                 self.set_local_file_record(sync_folder_path, obj, 'exists')
-
-    def check_local_folder(self, sync):
-        pass
+    
 
     def set_local_file_record(self, sync_folder_path, local_file, state):
         if local_file not in self.local[sync_folder_path]:
