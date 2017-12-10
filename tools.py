@@ -47,6 +47,10 @@ def get_hash(file):
     except FileNotFoundError: 
         log.debug("File " + file + " does not exist")
         file_sha1 = ''
+    except IsADirectoryError:
+        log.debug("File " + file + " is a directory")
+        file_sha1 = ''
+
                               
     return file_sha1
 

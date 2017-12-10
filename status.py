@@ -20,7 +20,8 @@ class Status(object):
         self.dec_folders[path] = {}
 
     def add_file(self, path, file):
-        self.dec_folders[path][file] = {}
+        if file not in self.dec_folders[path]:
+            self.dec_folders[path][file] = {}
         self.dec_folders[path][file]['file_timestamp'] = tstamp(file)
         self.dec_folders[path][file]['file_checksum'] = hash(file)
         encrypted_path = enc_path(file, self.config, path)
@@ -77,6 +78,9 @@ class Status(object):
                     files.append(file)
                     not_in_dec.append(file)
                 else:
-                    in_both.append(file)
+                    if self.enc_folders[folder][file]['encrypted_file_timestamp'] == '':
+                        not_in_enc.append(file)
+                    else:
+                        in_both.append(file)
 
         return(files, not_in_dec, not_in_enc, in_both)

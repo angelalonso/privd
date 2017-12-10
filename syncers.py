@@ -20,12 +20,15 @@ class Syncer(object):
     """
 
     def __init__(self, config, key):
-        """ Returns a File whose path is path
+        """ Checks that everything is coherent between local and remote(encrypted) copies
         """
         self.config = config
         self.key = key
 
         self.status = Status(self.config)
+
+        if not os.path.exists(self.config.enc_mainfolder):
+            os.makedirs(self.config.enc_mainfolder)
 
         for folder in self.config.dec_folders:
             self.folder_initialize(folder['path'])
@@ -40,7 +43,11 @@ class Syncer(object):
  
         objects = glob.glob(folder['path'] + "/**/*", recursive=True)
         for obj in objects:
-            self.status.add_file(folder['path'], obj)
+            if os.path.isfile(obj):
+                self.status.add_file(folder['path'], obj)
+            elif os.path.isdir(obj):
+                if not os.path.exists(obj):
+                    os.makedirs(obj)
 
 
     def auto(self):
@@ -66,18 +73,26 @@ class Syncer(object):
 
         # Case #2: Files in local are not in remote
         for file in not_in_enc:
+            print("#----------------------------------#" + file)
+            print(str(self.status.dec_folders))
+            print("#----------------------------------#")
             managed_file = File(file)
             path = self.status.get_folder(file,self.status.dec_folders)
             enc_file_path = file.replace(path, self.config.enc_mainfolder + path) + '.gpg'
-            log.debug("encrypting " + file + " into " + enc_file_path)
             managed_file.encrypt(enc_file_path, self.key)
             # This is needed because the encryption takes a bit. 100 is a random number really
+
+            print("##++++++++### " + str(self.status.dec_folders[path][file]))
             for i in range(1000):
                 try:
-                    self.status.add_encrypted_file(path, file, enc_file_path)
+                    self.status.add_file(path, file)
+                    #self.status.add_encrypted_file(path, file, self.status.dec_folders[file]['encrypted_path'])
                 except FileNotFoundError:
                     continue
                 break
+            print("##++++++++### " + str(self.status.dec_folders[path][file]))
+        print("####################################")
+        print(str(self.status.dec_folders))
 
         # Case #3: Files in both
         for file in in_both:
@@ -90,7 +105,6 @@ class Syncer(object):
                     managed_file = File(file)                                                                                                                
                     path = self.status.get_folder(file,self.status.dec_folders)                                                                              
                     enc_file_path = file.replace(path, self.config.enc_mainfolder + path) + '.gpg'                                                           
-                    log.debug("encrypting " + file + " into " + enc_file_path)                                                                               
                     managed_file.encrypt(enc_file_path, self.key)                                                                                            
                     # This is needed because the encryption takes a bit. 100 is a random number really                                                       
                     for i in range(1000):                                                                                                                    
@@ -108,6 +122,9 @@ class Syncer(object):
 
 
         self.status.write_statusfile()
+        self.status.load_statusfile()
+        #print("############# " + str(self.status.dec_folders['/home/aaf/.privd/TEST/source']['/home/aaf/.privd/TEST/source/beep']))
+        #print("############# " + str(self.status.enc_folders['/home/aaf/.privd/TEST/source']['/home/aaf/.privd/TEST/source/beep']))
             
 
     def folder_initialize(self, path):
@@ -119,7 +136,8 @@ class Syncer(object):
         self.status.add_folder(path)
         objects = glob.glob(path + "/**/*", recursive=True)
         for obj in objects:
-            self.status.add_file(path, obj)
+            if os.path.isfile(obj):
+                self.status.add_file(path, obj)
 
 
     def folder_encrypt(self, path, enc_mainfolder, key):

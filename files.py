@@ -21,7 +21,7 @@ class File(object):
 
         # whatever there is, remove it first
         log.debug("encrypting " + file_enc)
-        self.statuscheck()
+        os.makedirs(os.path.dirname(file_enc), exist_ok=True)
         try:
             os.remove(file_enc)
             log.debug("Had to remove previous " + file_enc)
@@ -34,7 +34,7 @@ class File(object):
         """ Decrypts file back to original path
         """
         log.debug("decrypting to " + self.path)
-        self.statuscheck()
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
         try:
             os.remove(self.path)
             log.debug("Had to remove previous " + self.path)
@@ -69,6 +69,8 @@ class File(object):
             log.debug("Last modified: {}".format(stats_buffer.st_mtime))
         except FileNotFoundError:
             log.debug("File " + self.path + " does not exist")
+        except IsADirectoryError:
+            log.debug("File " + self.path + " is a directory")
 
 
 
