@@ -40,23 +40,44 @@ class Status(object):
     def update_local(self):
         # TODO:
         # Look for changes, new files, deleted files
+        # include those marked as "deleted"
         for sync_folder in self.config.folders:
             sync_folder_path = sync_folder['path']
             objects = glob.glob(sync_folder['path'] + "/**/*", recursive=True)
 
-            all_files = []
-            object_list = []
-            #print("#### REAL FILES:")
+            #registered_set = set(self.local[sync_folder_path])
+            registered_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated'))
+            object_set = set()
             for obj in objects:
                 if os.path.isfile(obj):
-                    object_list.append(obj)
-            registered_list = set(self.local[sync_folder_path])
-            print("#### LOCAL FILES:")
-            print(object_list)
-            print("#### REGISTERED FILES:")
-            print(registered_list)
-            # https://stackoverflow.com/questions/1319338/combining-two-lists-and-removing-duplicates-without-removing-duplicates-in-orig
+                    object_set.add(obj)
+            # Set deleted objects as deleted
+            for obj in registered_set - object_set:
+                self.delete_local_file(sync_folder_path, obj)
 
+            # Set exists or recreated objects as such
+            for obj in object_set - registered_set:
+                try: 
+                    if self.local[sync_folder_path][obj]['state'] in ('deleted'):
+                        self.recreate_local_file(sync_folder_path, obj)
+                        # Necessary?
+                    #else:
+                    #    self.new_local_file(sync_folder_path, obj)
+                except KeyError:
+                    self.new_local_file(sync_folder_path, obj)
+
+            # Check if updated, then Do something with updated files
+            for obj in object_set.intersection(registered_set):
+                if tstamp(obj) > self.local[sync_folder_path][obj]['local_file_timestamp']:
+                    log.debug(obj + " has changed locally")
+
+
+            log.debug("EXISTS ######################################")
+            log.debug(self.get_local_files_w_state(sync_folder_path, ('exists')))
+            log.debug("DELETED #####################################")
+            log.debug(self.get_local_files_w_state(sync_folder_path, ('deleted')))
+            log.debug("RECREATED ###################################")
+            log.debug(self.get_local_files_w_state(sync_folder_path, ('recreated')))
 
 
     def get_remote(self):
@@ -71,6 +92,13 @@ class Status(object):
             log.error("File " + self.config.statusfile_path + " does not exist")
             return("FileNotFoundError")
 
+    def get_local_files_w_state(self, sync_folder_path, state):
+        result = set()
+        for file in self.local[sync_folder_path]:
+            if self.local[sync_folder_path][file]['state'] in state:
+                result.add(file)
+        return result
+
 
     def register_local_folder(self, sync_folder):
         sync_folder_path = sync_folder['path']
@@ -84,10 +112,20 @@ class Status(object):
     def set_local_file_record(self, sync_folder_path, local_file, state):
         if local_file not in self.local[sync_folder_path]:
             self.local[sync_folder_path][local_file] = {}
+        # TODO: error if it does not exist maybe?
         self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
         self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
         self.local[sync_folder_path][local_file]['state'] = state
 
+
+    def new_local_file(self, sync_folder_path, local_file): 
+        self.set_local_file_record(sync_folder_path, local_file, 'exists')
+
+    def delete_local_file(self, sync_folder_path, local_file): 
+        self.set_local_file_record(sync_folder_path, local_file, 'deleted')
+        
+    def recreate_local_file(self, sync_folder_path, local_file): 
+        self.set_local_file_record(sync_folder_path, local_file, 'recreated')
         
 ######################## END OF NEW
 
