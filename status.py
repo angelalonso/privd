@@ -2,6 +2,7 @@ import glob
 import logging as log
 import os
 import yaml
+from files import File as File
 from tools import get_encrypted_file_path as enc_path
 from tools import get_hash as hash
 from tools import get_timestamp as tstamp
@@ -30,9 +31,9 @@ class Status(object):
 ######################## NEW FOR daemon and new status files and dicts
 # TODO: use sync_folder instead of path everywhere, call them snyc_folders in config.yaml
 
-    def refresh(self):
+    def refresh(self, key):
         self.update_local()
-        self.update_remote()
+        self.update_remote(key)
 
 ## local functions
 
@@ -111,6 +112,7 @@ class Status(object):
         # TODO: error if it does not exist maybe?
         self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
         self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
+        self.local[sync_folder_path][local_file]['encrypted_file_path'] = self.config.enc_mainfolder + local_file + ".gpg"
         # Set no state to keep the same one
         if not state == '':
             self.local[sync_folder_path][local_file]['state'] = state
@@ -155,57 +157,57 @@ class Status(object):
             yaml.dump(self.remote, outfile, default_flow_style=False)
 
 
-    def update_remote(self):
+    def update_remote(self, key):
         self.get_remote()
         # once remote is loaded, we compare, change(encrypt and update data), write statusfile again
         for sync_folder in self.config.folders:
             sync_folder_path = sync_folder['path']
-            registered_local_set = self.get_local_files(sync_folder_path)
+            registered_local_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated'))
             # TODO: get also the real remote files to compare
-            registered_remote_set = set()                        
-            for file in self.remote[sync_folder_path]: registered_remote_set.add(file)
-            print("--------------------------")
+            registered_remote_set = self.get_remote_files_w_state(sync_folder_path, ('exists', 'recreated'))
+            print("-- LOCAL -----------------")
             print(registered_local_set)
-            print("-------------")
+            print("-- REMOTE ---")
             print(registered_remote_set)
-            print("--------------------------")
-#            sync_folder_path = sync_folder['path']
-#            objects = glob.glob(sync_folder_path + "/**/*", recursive=True)
-#
-#            registered_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated'))
-#            object_set = set()
-#            for obj in objects:
-#                if os.path.isfile(obj):
-#                    object_set.add(obj)
-#            # Set deleted objects as deleted
-#            for obj in registered_set - object_set:
-#                self.delete_local_file(sync_folder_path, obj)
-#            # Set exists or recreated objects as such
-#            for obj in object_set - registered_set:
-#                try: 
-#                    if self.local[sync_folder_path][obj]['state'] in ('deleted'):
-#                        self.recreate_local_file(sync_folder_path, obj)
-#                        # Necessary?
-#                    #else:
-#                    #    self.new_local_file(sync_folder_path, obj)
-#                except KeyError:
-#                    self.new_local_file(sync_folder_path, obj)
-#            # Check if updated, then Do something with updated files
-#            for obj in object_set.intersection(registered_set):
-#                if tstamp(obj) > self.local[sync_folder_path][obj]['local_file_timestamp']:
-#                    if not hash(obj) == self.local[sync_folder_path][obj]['local_file_checksum']:
-#                        log.debug(obj + " has changed contents locally")
-#                        self.set_local_file_record(sync_folder_path, obj, '')
-#                    else:
-#                        log.debug(obj + " has been updated locally but did not change")
-#
-#            log.debug("## Local files marked as EXISTING  ##")
-#            log.debug(self.get_local_files_w_state(sync_folder_path, ('exists')))
-#            log.debug("## Local files marked as DELETED   ##")
-#            log.debug(self.get_local_files_w_state(sync_folder_path, ('deleted')))
-#            log.debug("## Local files marked as RECREATED ##")
-#            log.debug(self.get_local_files_w_state(sync_folder_path, ('recreated')))
+            # is local but not remote?
+            print("-- local - remote --------")
+            for obj in registered_local_set - registered_remote_set:
+                managed_file = File(obj)
+                enc_file_path = self.local[sync_folder_path][obj]['encrypted_file_path']
+                managed_file.encrypt(enc_file_path, key)
+                self.set_remote_file_record(sync_folder_path, obj, 'exists')
+                # TODO: when shall I write? 
+                # TODO: do I need to reload? what if I remove files on the fly?
+                self.write_remote_statusfile()
+            print("-- remote - local --------")
+            # is remote but not local?
+            for obj in registered_remote_set - registered_local_set:
+                # TODO - NEXTUP: get decrypted versions of the missing files
+                print(obj)
 
+            # is both?
+            # deleted? when?
+
+    def get_remote_files_w_state(self, sync_folder_path, state):
+        result = set()
+        for file in self.remote[sync_folder_path]:
+            if self.remote[sync_folder_path][file]['state'] in state:
+                result.add(file)
+        return result
+
+
+    def set_remote_file_record(self, sync_folder_path, remote_file, state):
+        if remote_file not in self.remote[sync_folder_path]:
+            self.remote[sync_folder_path][remote_file] = {}
+        # TODO: error if it does not exist maybe?
+        self.remote[sync_folder_path][remote_file]['remote_file_timestamp'] = tstamp(remote_file)
+        self.remote[sync_folder_path][remote_file]['remote_file_checksum'] = hash(remote_file)
+        self.remote[sync_folder_path][remote_file]['encrypted_file_path'] = self.local[sync_folder_path][remote_file]['encrypted_file_path']
+        # Set no state to keep the same one
+        if not state == '':
+            self.remote[sync_folder_path][remote_file]['state'] = state
+
+        
 ######################## END OF NEW
 
     def add_folder(self, path):

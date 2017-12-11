@@ -18,6 +18,7 @@ class Syncer(object):
     details about the encryption
     details to identify newer versions -> Moved to Files maybe?
     """
+    # TODO: probably get rid of the whole syncer thing if it can be moved to status altogether
 
     def __init__(self, config, key):
         """ Checks that everything is coherent between local and remote(encrypted) copies
@@ -37,7 +38,7 @@ class Syncer(object):
             self.status.write_statusfile()
 
     def daemon(self):
-        self.status.refresh()
+        self.status.refresh(self.key)
         print("#######################")
         print(self.status.local)
         print("---")
