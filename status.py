@@ -1,6 +1,7 @@
 import glob
 import logging as log
 import os
+import time
 import yaml
 from files import File as File
 from tools import get_encrypted_file_path as enc_path
@@ -113,6 +114,8 @@ class Status(object):
         self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
         self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
         self.local[sync_folder_path][local_file]['encrypted_file_path'] = self.config.enc_mainfolder + local_file + ".gpg"
+        if state == 'deleted':
+            self.local[sync_folder_path][local_file]['local_file_timestamp'] = str(int(time.time()))
         # Set no state to keep the same one
         if not state == '':
             self.local[sync_folder_path][local_file]['state'] = state
@@ -162,14 +165,14 @@ class Status(object):
         # once remote is loaded, we compare, change(encrypt and update data), write statusfile again
         for sync_folder in self.config.folders:
             sync_folder_path = sync_folder['path']
-            registered_local_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated'))
+            registered_local_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated', 'deleted'))
             # TODO: get also the real remote files to compare
-            registered_remote_set = self.get_remote_files_w_state(sync_folder_path, ('exists', 'recreated'))
+            registered_remote_set = self.get_remote_files_w_state(sync_folder_path, ('exists', 'recreated', 'deleted'))
             print("-- LOCAL -----------------")
             print(registered_local_set)
             print("-- REMOTE ---")
             print(registered_remote_set)
-            # is local but not remote?
+            # is local but not remote? - NOT INCLUDING MARKED AS DELETED
             print("-- local - remote --------")
             for obj in registered_local_set - registered_remote_set:
                 managed_file = File(obj)
@@ -180,10 +183,24 @@ class Status(object):
                 # TODO: do I need to reload? what if I remove files on the fly?
                 self.write_remote_statusfile()
             print("-- remote - local --------")
-            # is remote but not local?
+            # is remote but not local? - NOT INCLUDING MARKED AS DELETED
             for obj in registered_remote_set - registered_local_set:
-                # TODO - NEXTUP: get decrypted versions of the missing files
                 print(obj)
+                managed_file = File(obj)
+                enc_file_path = self.remote[sync_folder_path][obj]['encrypted_file_path']
+                managed_file.decrypt(enc_file_path)
+                self.set_local_file_record(sync_folder_path, obj, 'exists')
+            # TODO: if deleted timestamp is newer, transmit
+            # TODO: decide what to do and don't forget to update statuses
+            for obj in registered_local_set.intersection(registered_remote_set):
+                print(obj + " - " + self.local[sync_folder_path][obj]['local_file_timestamp'] + " - " + self.remote[sync_folder_path][obj]['remote_file_timestamp'])
+                if self.local[sync_folder_path][obj]['local_file_timestamp'] > self.remote[sync_folder_path][obj]['remote_file_timestamp']:
+                    print("+++++++++++++++++++++++++++++ local is newer")
+                elif self.local[sync_folder_path][obj]['local_file_timestamp'] < self.remote[sync_folder_path][obj]['remote_file_timestamp']:
+                    print("+++++++++++++++++++++++++++++ remote is newer")
+                else:
+                    print("+++++++++++++++++++++++++++++ same")
+
 
             # is both?
             # deleted? when?

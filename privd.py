@@ -52,6 +52,8 @@ if __name__ == "__main__":
         # either syncer init initializes folders, or syncer.encrypt does
         syncer = Syncer(config, key)
         while True:
+            print("#################################################################" + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
+            print("#################################################################" + str(int(time.time())) )
             syncer.daemon()
             time.sleep(4)
   
