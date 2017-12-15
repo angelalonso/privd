@@ -195,15 +195,39 @@ class Status(object):
             for obj in registered_local_set.intersection(registered_remote_set):
                 print(obj + " - " + self.local[sync_folder_path][obj]['local_file_timestamp'] + " - " + self.remote[sync_folder_path][obj]['remote_file_timestamp'])
                 if self.local[sync_folder_path][obj]['local_file_timestamp'] > self.remote[sync_folder_path][obj]['remote_file_timestamp']:
-                    print("+++++++++++++++++++++++++++++ local is newer")
+                    self.update_remote_file(sync_folder_path, obj)
                 elif self.local[sync_folder_path][obj]['local_file_timestamp'] < self.remote[sync_folder_path][obj]['remote_file_timestamp']:
-                    print("+++++++++++++++++++++++++++++ remote is newer")
+                    self.update_local_file(sync_folder_path, obj)
                 else:
                     print("+++++++++++++++++++++++++++++ same")
 
 
             # is both?
             # deleted? when?
+
+    # TODO: move this to "local" functions
+    def update_local_file(self, sync_folder_path, object):
+        print("+++++++++++++++++++++++++++++ remote is newer - " + self.remote[sync_folder_path][object]['state'])
+        if self.remote[sync_folder_path][object]['state'] == 'deleted':
+            print("++++ should be deleted and marked in local")
+        elif self.remote[sync_folder_path][object]['state'] == 'recreated':
+            print("++++ should be recreated and marked in local")
+        else:
+            print("++++ should just be in local and marked with the same state as remote")
+
+
+
+
+    def update_remote_file(self, sync_folder_path, object):
+        print("+++++++++++++++++++++++++++++ local is newer - " + self.local[sync_folder_path][object]['state'])
+        if self.local[sync_folder_path][object]['state'] == 'deleted':
+            print("++++ should be deleted and marked in remote")
+        elif self.local[sync_folder_path][object]['state'] == 'recreated':
+            print("++++ should be recreated and marked in remote")
+        else:
+            print("++++ should just be in remote and marked with the same state as local")
+        print("end")
+
 
     def get_remote_files_w_state(self, sync_folder_path, state):
         result = set()
