@@ -209,15 +209,19 @@ class Status(object):
     def update_local_file(self, sync_folder_path, object):
         print("+++++++++++++++++++++++++++++ remote is newer - " + self.remote[sync_folder_path][object]['state'])
         if self.remote[sync_folder_path][object]['state'] == 'deleted':
-            print("++++ should be deleted and marked in local")
-        elif self.remote[sync_folder_path][object]['state'] == 'recreated':
-            print("++++ should be recreated and marked in local")
+            print("++++++++++++++ removing local")
+            os.remove(object)
         else:
-            print("++++ should just be in local and marked with the same state as remote")
+            print("+++++++++++++++++++++++++ recovering local, stae from remote")
+            managed_file = File(object)
+            enc_file_path = self.remote[sync_folder_path][object]['encrypted_file_path']
+            managed_file.decrypt(enc_file_path)
+        self.set_local_file_record(sync_folder_path, object, self.remote[sync_folder_path][object]['state'])
 
 
 
 
+    # TODO: NEXTUP -> do this part too
     def update_remote_file(self, sync_folder_path, object):
         print("+++++++++++++++++++++++++++++ local is newer - " + self.local[sync_folder_path][object]['state'])
         if self.local[sync_folder_path][object]['state'] == 'deleted':
