@@ -1,9 +1,12 @@
 import os
 import logging as log
 import yaml
-from tools import correct_path as cpath
+from tools import real2homeenv_path as getenvhome
+from tools import homeenv2real_path as getrealhome
 
-#TODO: Store paths with $HOME, use cpath ONLY when accessing the files and folders themselves!
+#TODO: Store paths with $HOME, use real path ONLY when accessing the files and folders themselves!
+# - change config to avoid this
+# - adapt as it goes
 
 class Config(object):
     """ A config object containing all values required
@@ -16,14 +19,14 @@ class Config(object):
             load = yaml.safe_load(stream)
 
         try:
-            self.mainfolder = cpath(load['mainfolder'])
+            self.mainfolder = getrealhome(load['mainfolder'])
         except KeyError as exc:
             self.mainfolder = os.environ['HOME'] + "/.privd"
             log.debug("Using default Main folder")
         log.debug("Main folder: " + self.mainfolder)
 
         try:
-            self.enc_mainfolder = cpath(load['enc_mainfolder'])
+            self.enc_mainfolder = getrealhome(load['enc_mainfolder'])
         except KeyError as exc:
             self.enc_mainfolder = self.mainfolder + "/enc"
             log.debug("Using default folder for encrypted files")
@@ -32,7 +35,7 @@ class Config(object):
         try:
             self.folders = load['folders']
             for folder in self.folders:
-              folder['path'] = cpath(folder['path'])
+              folder['path'] = getrealhome(folder['path'])
         except KeyError as exc:
             self.folders = []
             log.debug("Empty set of Folders to encryptedly sync")
@@ -41,7 +44,7 @@ class Config(object):
         try:
             self.dec_folders = load['folders']
             for folder in self.dec_folders:
-              folder['path'] = cpath(folder['path'])
+              folder['path'] = getrealhome(folder['path'])
         except KeyError as exc:
             self.dec_folders = []
             log.debug("Empty set of Folders to encrypt")
@@ -64,5 +67,5 @@ class Config(object):
         except KeyError as exc:
             self.statusfile = ".status"
             log.debug("Using default filename for status file")
-        self.statusfile_path = cpath(self.status_folder + "/" + self.statusfile)
+        self.statusfile_path = (self.status_folder + "/" + self.statusfile)
         log.debug("Status file: " + self.statusfile_path)

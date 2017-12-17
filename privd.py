@@ -1,5 +1,8 @@
 # TODO:
+# NEXTUP:
 # USe $HOME to store, change to /home/user only when taking actions -> compatibility with Mac
+#   encrpyted folder: _$_HOME
+
 # Remove unused functions
 # USe $HOME to store, change to /home/user only when taking actions -> compatibility with Mac
 # Create better different levels of logging messages (info, debug, error...)
