@@ -33,7 +33,7 @@ class File(object):
         cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
 
 
-    def decrypt(self, file_enc, cofig):
+    def decrypt(self, file_enc, config):
         """ Decrypts file back to original path
         """
         real_file_enc_path = enc_homefolder(config, file_enc)

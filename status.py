@@ -6,6 +6,7 @@ import yaml
 from files import File as File
 from tools import real2homeenv_path as getenvhome
 from tools import homeenv2real_path as getrealhome
+from tools import enc_homefolder
 from tools import get_encrypted_file_path as enc_path
 from tools import get_hash as hash
 from tools import get_timestamp as tstamp
@@ -191,7 +192,7 @@ class Status(object):
             for obj in registered_local_set.intersection(registered_remote_set):
                 log.debug("   - " + obj)
                 if self.local[sync_folder_path][obj]['local_file_timestamp'] > self.remote[sync_folder_path][obj]['remote_file_timestamp']:
-                    self.update_remote_file(sync_folder_path, obj, key)
+                    self.update_remote_file(sync_folder_path, obj)
                 elif self.local[sync_folder_path][obj]['local_file_timestamp'] < self.remote[sync_folder_path][obj]['remote_file_timestamp']:
                     self.update_local_file(sync_folder_path, obj)
                 else:
@@ -205,7 +206,7 @@ class Status(object):
         log.debug("     * local is newer - " + self.local[sync_folder_path][object]['state'])
         if self.local[sync_folder_path][object]['state'] == 'deleted':
             try:
-                os.remove(getrealhome(self.local[sync_folder_path][object]['encrypted_file_path']))
+                os.remove(enc_homefolder(self.config, self.local[sync_folder_path][object]['encrypted_file_path']))
                 log.info("      -> removing  " + self.local[sync_folder_path][object]['encrypted_file_path'])
             except FileNotFoundError:
                 pass
