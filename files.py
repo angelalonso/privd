@@ -24,11 +24,13 @@ class File(object):
 
         # whatever there is, remove it first
         log.debug("encrypting " + getrealhome(file_enc))
+        print("encrypting " + getrealhome(file_enc))
         os.makedirs(os.path.dirname(real_file_enc_path), exist_ok=True)
         try:
             os.remove(real_file_enc_path)
             log.debug("Had to remove previous " + real_file_enc_path)
         except FileNotFoundError: pass
+        print("encrypting " + real_file_enc_path)
         cmd = 'gpg -e -r ' + config.key.id + ' --trust-model always --output ' + real_file_enc_path + ' ' + self.path
         cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
 
@@ -38,6 +40,7 @@ class File(object):
         """
         real_file_enc_path = enc_homefolder(config, file_enc)
         log.debug("decrypting to " + self.path)
+        print("decrypting to " + self.path)
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         try:
             os.remove(self.path)

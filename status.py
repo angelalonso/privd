@@ -102,7 +102,7 @@ class Status(object):
         self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
         self.local[sync_folder_path][local_file]['encrypted_file_path'] = self.config.enc_mainfolder + local_file + ".gpg"
         if state == 'deleted':
-            self.local[sync_folder_path][local_file]['local_file_timestamp'] = time.time()
+            self.local[sync_folder_path][local_file]['local_file_timestamp'] = format(time.time())
         # Set no state to keep the same one
         if not state == '':
             self.local[sync_folder_path][local_file]['state'] = state
@@ -192,9 +192,9 @@ class Status(object):
             # is on both? INCLUDING MARKED AS DELETED
             for obj in registered_local_set.intersection(registered_remote_set):
                 log.debug("   - " + obj)
-                if self.local[sync_folder_path][obj]['local_file_timestamp'] > self.remote[sync_folder_path][obj]['remote_file_timestamp']:
+                if float(self.local[sync_folder_path][obj]['local_file_timestamp']) > float(self.remote[sync_folder_path][obj]['remote_file_timestamp']):
                     self.update_remote_file(sync_folder_path, obj)
-                elif self.local[sync_folder_path][obj]['local_file_timestamp'] < self.remote[sync_folder_path][obj]['remote_file_timestamp']:
+                elif self.local[sync_folder_path][obj]['local_file_timestamp'] < float(self.remote[sync_folder_path][obj]['remote_file_timestamp']):
                     self.update_local_file(sync_folder_path, obj)
                 else:
                     log.debug("     + both are the same")
@@ -236,8 +236,16 @@ class Status(object):
         if remote_file not in self.remote[sync_folder_path]:
             self.remote[sync_folder_path][remote_file] = {}
         # TODO: error if it does not exist maybe?
-        self.remote[sync_folder_path][remote_file]['remote_file_timestamp'] = tstamp(remote_file) if tstamp(remote_file) != '' else 0
-        self.remote[sync_folder_path][remote_file]['remote_file_checksum'] = hash(remote_file)
+        real_remote_file = enc_homefolder(self.config, self.local[sync_folder_path][remote_file]['encrypted_file_path'])
+        for i in range(1000):
+            enc_done = os.path.isfile(real_remote_file)
+            if enc_done:
+                break
+            else:
+                continue
+
+        self.remote[sync_folder_path][remote_file]['remote_file_timestamp'] = tstamp(real_remote_file)
+        self.remote[sync_folder_path][remote_file]['remote_file_checksum'] = hash(real_remote_file)
         self.remote[sync_folder_path][remote_file]['encrypted_file_path'] = self.local[sync_folder_path][remote_file]['encrypted_file_path']
         # Set no state to keep the same one
         if not state == '':
