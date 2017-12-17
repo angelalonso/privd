@@ -4,6 +4,8 @@ import os
 import time
 import yaml
 from files import File as File
+from tools import real2homeenv_path as getenvhome
+from tools import homeenv2real_path as getrealhome
 from tools import get_encrypted_file_path as enc_path
 from tools import get_hash as hash
 from tools import get_timestamp as tstamp
@@ -15,26 +17,18 @@ class Status(object):
         # Data for the local folders, new format
         self.local = {}
         self.get_local()
-        if not os.path.isfile(self.config.statusfile_path):
-            log.error("NO REMOTE FILE")
+        if not os.path.isfile(getrealhome(self.config.statusfile_path)):
+            log.error("No remote file found, creating " + getrealhome(self.config.statusfile_path))
             self.create_remote_statusfile()
         else:
             self.get_remote()
-
-        # TODO: remove?? both below
-        # Data for the local, decrypted, folders
-        # Changes go on this one, and we overwrite statusfile with it
-    #    self.dec_folders = {}
-        # Data for the remote, encrypted, counterparts of our folders
-        # Only used for reference on what is in remote
-    #    self.enc_folders = {}
 
 
 # TODO: use sync_folder instead of path everywhere, call them snyc_folders in config.yaml
 
     def refresh(self, key):
         self.update_local()
-        self.update_remote(key)
+        self.update_remote()
 
 ## local functions
 
@@ -47,13 +41,14 @@ class Status(object):
         log.debug("######## Updating LOCAL")
         for sync_folder in self.config.folders:
             sync_folder_path = sync_folder['path']
-            objects = glob.glob(sync_folder_path + "/**/*", recursive=True)
+            log.debug("Updating folder " + sync_folder_path)
+            objects = glob.glob(getrealhome(sync_folder_path) + "/**/*", recursive=True)
 
             registered_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated'))
             object_set = set()
             for obj in objects:
                 if os.path.isfile(obj):
-                    object_set.add(obj)
+                    object_set.add(getenvhome(obj))
             # Set deleted objects as deleted
             for obj in registered_set - object_set:
                 self.delete_local_file(sync_folder_path, obj)
@@ -88,12 +83,12 @@ class Status(object):
         log.debug("     * remote is newer - " + self.remote[sync_folder_path][object]['state'])
         if self.remote[sync_folder_path][object]['state'] == 'deleted':
             log.debug("      -> removing " + object)
-            os.remove(object)
+            os.remove(getrealhome(object))
         else:
             log.debug("      -> updating local " + object)
             managed_file = File(object)
             enc_file_path = self.remote[sync_folder_path][object]['encrypted_file_path']
-            managed_file.decrypt(enc_file_path)
+            managed_file.decrypt(enc_file_path, self.config)
         self.set_local_file_record(sync_folder_path, object, self.remote[sync_folder_path][object]['state'])
 
 
@@ -129,10 +124,10 @@ class Status(object):
     def register_local_folder(self, sync_folder):
         sync_folder_path = sync_folder['path']
         self.local[sync_folder_path] = {}
-        objects = glob.glob(sync_folder_path + "/**/*", recursive=True) 
+        objects = glob.glob(getrealhome(sync_folder_path) + "/**/*", recursive=True) 
         for obj in objects:
             if os.path.isfile(obj):
-                self.set_local_file_record(sync_folder_path, obj, 'exists')
+                self.set_local_file_record(sync_folder_path, getenvhome(obj), 'exists')
 
         
     def new_local_file(self, sync_folder_path, local_file): 
@@ -150,23 +145,24 @@ class Status(object):
 
     def get_remote(self):
         try:
-            with open(self.config.statusfile_path, 'r') as stream:
+            with open(getrealhome(self.config.statusfile_path), 'r') as stream:
                 try:
                     self.remote = yaml.load(stream)
                 except yaml.YAMLError as exc:
                     log.error(exc)
                     return("YAMLError")
         except FileNotFoundError:
-            log.error("File " + self.config.statusfile_path + " does not exist")
+            log.error("File " + getrealhome(self.config.statusfile_path) + " does not exist")
             return("FileNotFoundError")
 
 
-    def update_remote(self, key):
+    def update_remote(self):
         log.debug("######## Updating REMOTE")
         self.get_remote()
         # once remote is loaded, we compare, change(encrypt and update data), write statusfile again
         for sync_folder in self.config.folders:
             sync_folder_path = sync_folder['path']
+            log.debug("Updating remote folder " + sync_folder_path)
             registered_local_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated', 'deleted'))
             # TODO: get also the real remote files to compare
             registered_remote_set = self.get_remote_files_w_state(sync_folder_path, ('exists', 'recreated', 'deleted'))
@@ -180,7 +176,7 @@ class Status(object):
                 log.debug("   - " + obj)
                 managed_file = File(obj)
                 enc_file_path = self.local[sync_folder_path][obj]['encrypted_file_path']
-                managed_file.encrypt(enc_file_path, key)
+                managed_file.encrypt(enc_file_path, self.config)
                 self.set_remote_file_record(sync_folder_path, obj, 'exists')
             log.debug(" - Files not in Local:")
             # is remote but not local? - NOT INCLUDING MARKED AS DELETED
@@ -188,7 +184,7 @@ class Status(object):
                 log.debug("   - " + obj)
                 managed_file = File(obj)
                 enc_file_path = self.remote[sync_folder_path][obj]['encrypted_file_path']
-                managed_file.decrypt(enc_file_path)
+                managed_file.decrypt(enc_file_path, self.config)
                 self.set_local_file_record(sync_folder_path, obj, 'exists')
             log.debug(" - Files in both:")
             # is on both? INCLUDING MARKED AS DELETED
@@ -205,11 +201,11 @@ class Status(object):
         self.write_remote_statusfile()
 
 
-    def update_remote_file(self, sync_folder_path, object, key):
+    def update_remote_file(self, sync_folder_path, object):
         log.debug("     * local is newer - " + self.local[sync_folder_path][object]['state'])
         if self.local[sync_folder_path][object]['state'] == 'deleted':
             try:
-                os.remove(self.local[sync_folder_path][object]['encrypted_file_path'])
+                os.remove(getrealhome(self.local[sync_folder_path][object]['encrypted_file_path']))
                 log.info("      -> removing  " + self.local[sync_folder_path][object]['encrypted_file_path'])
             except FileNotFoundError:
                 pass
@@ -217,7 +213,7 @@ class Status(object):
             log.info("      -> updating " + self.local[sync_folder_path][object]['encrypted_file_path'])
             managed_file = File(object)
             enc_file_path = self.remote[sync_folder_path][object]['encrypted_file_path']
-            managed_file.encrypt(enc_file_path, key)
+            managed_file.encrypt(enc_file_path, self.config)
         self.set_remote_file_record(sync_folder_path, object, self.local[sync_folder_path][object]['state'])
 
 
@@ -229,8 +225,8 @@ class Status(object):
 
 
     def write_remote_statusfile(self):
-        log.debug("######## Writing to status file: " + self.config.statusfile_path)
-        with open(self.config.statusfile_path, 'w') as outfile:
+        log.debug("######## Writing to status file: " + getrealhome(self.config.statusfile_path))
+        with open(getrealhome(self.config.statusfile_path), 'w') as outfile:
             yaml.dump(self.remote, outfile, default_flow_style=False)
 
 
@@ -282,12 +278,6 @@ class Status(object):
 #        for folder in folders:
 #            if folder + "/" in file:
 #                return folder
-#
-#    def write_statusfile(self):
-#        log.debug("Writing to status file: " + self.config.statusfile_path)
-#        with open(self.config.statusfile_path, 'w') as outfile:
-#            yaml.dump(self.dec_folders, outfile, default_flow_style=False)
-#
 #
 #    def load_statusfile(self):
 #        try:

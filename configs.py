@@ -19,14 +19,14 @@ class Config(object):
             load = yaml.safe_load(stream)
 
         try:
-            self.mainfolder = getrealhome(load['mainfolder'])
+            self.mainfolder = load['mainfolder']
         except KeyError as exc:
             self.mainfolder = os.environ['HOME'] + "/.privd"
             log.debug("Using default Main folder")
         log.debug("Main folder: " + self.mainfolder)
 
         try:
-            self.enc_mainfolder = getrealhome(load['enc_mainfolder'])
+            self.enc_mainfolder = load['enc_mainfolder']
         except KeyError as exc:
             self.enc_mainfolder = self.mainfolder + "/enc"
             log.debug("Using default folder for encrypted files")
@@ -35,7 +35,7 @@ class Config(object):
         try:
             self.folders = load['folders']
             for folder in self.folders:
-              folder['path'] = getrealhome(folder['path'])
+              folder['path'] = folder['path']
         except KeyError as exc:
             self.folders = []
             log.debug("Empty set of Folders to encryptedly sync")
@@ -44,7 +44,7 @@ class Config(object):
         try:
             self.dec_folders = load['folders']
             for folder in self.dec_folders:
-              folder['path'] = getrealhome(folder['path'])
+              folder['path'] = folder['path']
         except KeyError as exc:
             self.dec_folders = []
             log.debug("Empty set of Folders to encrypt")
