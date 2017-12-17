@@ -20,13 +20,14 @@ class Status(object):
             self.create_remote_statusfile()
         else:
             self.get_remote()
-        # TODO: remove both below
+
+        # TODO: remove?? both below
         # Data for the local, decrypted, folders
         # Changes go on this one, and we overwrite statusfile with it
-        self.dec_folders = {}
+    #    self.dec_folders = {}
         # Data for the remote, encrypted, counterparts of our folders
         # Only used for reference on what is in remote
-        self.enc_folders = {}
+    #    self.enc_folders = {}
 
 
 # TODO: use sync_folder instead of path everywhere, call them snyc_folders in config.yaml
@@ -86,10 +87,10 @@ class Status(object):
     def update_local_file(self, sync_folder_path, object):
         log.debug("     * remote is newer - " + self.remote[sync_folder_path][object]['state'])
         if self.remote[sync_folder_path][object]['state'] == 'deleted':
-            log.debug("      -> removing local")
+            log.debug("      -> removing " + object)
             os.remove(object)
         else:
-            log.debug("      -> recovering local, stae from remote")
+            log.debug("      -> updating local " + object)
             managed_file = File(object)
             enc_file_path = self.remote[sync_folder_path][object]['encrypted_file_path']
             managed_file.decrypt(enc_file_path)
@@ -207,13 +208,13 @@ class Status(object):
     def update_remote_file(self, sync_folder_path, object, key):
         log.debug("     * local is newer - " + self.local[sync_folder_path][object]['state'])
         if self.local[sync_folder_path][object]['state'] == 'deleted':
-            log.debug("      -> removing  " + self.local[sync_folder_path][object]['encrypted_file_path'])
             try:
                 os.remove(self.local[sync_folder_path][object]['encrypted_file_path'])
+                log.info("      -> removing  " + self.local[sync_folder_path][object]['encrypted_file_path'])
             except FileNotFoundError:
                 pass
         else:
-            log.debug("      -> recovering remote, state from local")
+            log.info("      -> updating " + self.local[sync_folder_path][object]['encrypted_file_path'])
             managed_file = File(object)
             enc_file_path = self.remote[sync_folder_path][object]['encrypted_file_path']
             managed_file.encrypt(enc_file_path, key)
