@@ -23,14 +23,12 @@ class File(object):
         # TODO: pass user and encryption details as a parameter 
 
         # whatever there is, remove it first
-        log.debug("encrypting " + getrealhome(file_enc))
-        print("encrypting " + getrealhome(file_enc))
+        log.debug("encrypting " + real_file_enc_path)
         os.makedirs(os.path.dirname(real_file_enc_path), exist_ok=True)
         try:
             os.remove(real_file_enc_path)
             log.debug("Had to remove previous " + real_file_enc_path)
         except FileNotFoundError: pass
-        print("encrypting " + real_file_enc_path)
         cmd = 'gpg -e -r ' + config.key.id + ' --trust-model always --output ' + real_file_enc_path + ' ' + self.path
         cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
 

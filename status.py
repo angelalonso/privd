@@ -65,7 +65,7 @@ class Status(object):
                     self.new_local_file(sync_folder_path, obj)
             # Check if updated, then Do something with updated files
             for obj in object_set.intersection(registered_set):
-                local_file_timestamp = int(self.local[sync_folder_path][obj]['local_file_timestamp'])
+                local_file_timestamp = float(self.local[sync_folder_path][obj]['local_file_timestamp'])
                 if tstamp(obj) > local_file_timestamp:
                     if not hash(obj) == self.local[sync_folder_path][obj]['local_file_checksum']:
                         log.debug(obj + " has changed contents locally")
@@ -98,8 +98,20 @@ class Status(object):
         if local_file not in self.local[sync_folder_path]:
             self.local[sync_folder_path][local_file] = {}
         # TODO: error if it does not exist maybe?
-        self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
-        self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
+        real_local_file = getrealhome(local_file)
+        for i in range(100000):
+            dec_done = os.path.isfile(real_local_file)
+            if dec_done:
+                break
+            else:
+                continue
+
+        self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(real_local_file)
+        self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(real_local_file)
+        try:
+            self.local[sync_folder_path][local_file]['remote_file_checksum'] = self.remote[sync_folder_path][local_file]['remote_file_checksum']
+        except AttributeError: 
+            self.local[sync_folder_path][local_file]['remote_file_checksum'] = ''
         self.local[sync_folder_path][local_file]['encrypted_file_path'] = self.config.enc_mainfolder + local_file + ".gpg"
         if state == 'deleted':
             self.local[sync_folder_path][local_file]['local_file_timestamp'] = format(time.time())
@@ -194,8 +206,10 @@ class Status(object):
                 log.debug("   - " + obj)
                 if float(self.local[sync_folder_path][obj]['local_file_timestamp']) > float(self.remote[sync_folder_path][obj]['remote_file_timestamp']):
                     self.update_remote_file(sync_folder_path, obj)
-                elif self.local[sync_folder_path][obj]['local_file_timestamp'] < float(self.remote[sync_folder_path][obj]['remote_file_timestamp']):
-                    self.update_local_file(sync_folder_path, obj)
+                elif float(self.local[sync_folder_path][obj]['local_file_timestamp']) < float(self.remote[sync_folder_path][obj]['remote_file_timestamp']):
+                    # not there on first run
+                    if self.local[sync_folder_path][obj]['remote_file_checksum'] != self.remote[sync_folder_path][obj]['remote_file_checksum']:
+                        self.update_local_file(sync_folder_path, obj)
                 else:
                     log.debug("     + both are the same")
         # TODO: when shall I write? 
