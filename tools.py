@@ -31,7 +31,7 @@ def get_timestamp(file):
     if os.path.isfile(file):
         return format(os.stat(file).st_mtime)
     else:
-        return ''
+        return 0
 
 
 def get_newer(dict1, dict2, value):

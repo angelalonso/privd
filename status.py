@@ -65,7 +65,8 @@ class Status(object):
                     self.new_local_file(sync_folder_path, obj)
             # Check if updated, then Do something with updated files
             for obj in object_set.intersection(registered_set):
-                if tstamp(obj) > self.local[sync_folder_path][obj]['local_file_timestamp']:
+                local_file_timestamp = int(self.local[sync_folder_path][obj]['local_file_timestamp'])
+                if tstamp(obj) > local_file_timestamp:
                     if not hash(obj) == self.local[sync_folder_path][obj]['local_file_checksum']:
                         log.debug(obj + " has changed contents locally")
                         self.set_local_file_record(sync_folder_path, obj, '')
@@ -101,7 +102,7 @@ class Status(object):
         self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
         self.local[sync_folder_path][local_file]['encrypted_file_path'] = self.config.enc_mainfolder + local_file + ".gpg"
         if state == 'deleted':
-            self.local[sync_folder_path][local_file]['local_file_timestamp'] = str(int(time.time()))
+            self.local[sync_folder_path][local_file]['local_file_timestamp'] = time.time()
         # Set no state to keep the same one
         if not state == '':
             self.local[sync_folder_path][local_file]['state'] = state
@@ -235,7 +236,7 @@ class Status(object):
         if remote_file not in self.remote[sync_folder_path]:
             self.remote[sync_folder_path][remote_file] = {}
         # TODO: error if it does not exist maybe?
-        self.remote[sync_folder_path][remote_file]['remote_file_timestamp'] = tstamp(remote_file)
+        self.remote[sync_folder_path][remote_file]['remote_file_timestamp'] = tstamp(remote_file) if tstamp(remote_file) != '' else 0
         self.remote[sync_folder_path][remote_file]['remote_file_checksum'] = hash(remote_file)
         self.remote[sync_folder_path][remote_file]['encrypted_file_path'] = self.local[sync_folder_path][remote_file]['encrypted_file_path']
         # Set no state to keep the same one
