@@ -18,11 +18,9 @@ from syncers import Syncer as Syncer
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
     parser.add_argument('-v', '--verbose', help='Show higher level of verbosity', required=False, action='store_true')
 
     args = vars(parser.parse_args())
-
     if args['verbose']:
         log.basicConfig(format="%(levelname)s: %(message)s", level=log.DEBUG)
     else:
@@ -33,7 +31,8 @@ if __name__ == "__main__":
 
     syncer = Syncer(config, key)
     while True:
-        log.debug("########## Latest run at: " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + str(int(time.time())) )
+        log.debug("")
+        log.debug(str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
         syncer.daemon()
         time.sleep(1)
   
