@@ -179,9 +179,6 @@ class Status(object):
                 enc_file_path = self.local[sync_folder_path][obj]['encrypted_file_path']
                 managed_file.encrypt(enc_file_path, key)
                 self.set_remote_file_record(sync_folder_path, obj, 'exists')
-                # TODO: when shall I write? 
-                # TODO: do I need to reload? what if I remove files on the fly?
-                self.write_remote_statusfile()
             print("-- remote - local --------")
             # is remote but not local? - NOT INCLUDING MARKED AS DELETED
             for obj in registered_remote_set - registered_local_set:
@@ -195,11 +192,14 @@ class Status(object):
             for obj in registered_local_set.intersection(registered_remote_set):
                 print(obj + " - " + self.local[sync_folder_path][obj]['local_file_timestamp'] + " - " + self.remote[sync_folder_path][obj]['remote_file_timestamp'])
                 if self.local[sync_folder_path][obj]['local_file_timestamp'] > self.remote[sync_folder_path][obj]['remote_file_timestamp']:
-                    self.update_remote_file(sync_folder_path, obj)
+                    self.update_remote_file(sync_folder_path, obj, key)
                 elif self.local[sync_folder_path][obj]['local_file_timestamp'] < self.remote[sync_folder_path][obj]['remote_file_timestamp']:
                     self.update_local_file(sync_folder_path, obj)
                 else:
                     print("+++++++++++++++++++++++++++++ same")
+        # TODO: when shall I write? 
+        # TODO: do I need to reload? what if I remove files on the fly?
+        self.write_remote_statusfile()
 
 
             # is both?
@@ -219,17 +219,20 @@ class Status(object):
         self.set_local_file_record(sync_folder_path, object, self.remote[sync_folder_path][object]['state'])
 
 
-
-
-    # TODO: NEXTUP -> do this part too
-    def update_remote_file(self, sync_folder_path, object):
+    def update_remote_file(self, sync_folder_path, object, key):
         print("+++++++++++++++++++++++++++++ local is newer - " + self.local[sync_folder_path][object]['state'])
         if self.local[sync_folder_path][object]['state'] == 'deleted':
-            print("++++ should be deleted and marked in remote")
-        elif self.local[sync_folder_path][object]['state'] == 'recreated':
-            print("++++ should be recreated and marked in remote")
+            print("+++++++++++++ removing  " + self.local[sync_folder_path][object]['encrypted_file_path'])
+            try:
+                os.remove(self.local[sync_folder_path][object]['encrypted_file_path'])
+            except FileNotFoundError:
+                pass
         else:
-            print("++++ should just be in remote and marked with the same state as local")
+            print("+++++++++++++++++++++++++ recovering remote, state from local")
+            managed_file = File(object)
+            enc_file_path = self.remote[sync_folder_path][object]['encrypted_file_path']
+            managed_file.encrypt(enc_file_path, key)
+        self.set_remote_file_record(sync_folder_path, object, self.local[sync_folder_path][object]['state'])
         print("end")
 
 
