@@ -8,35 +8,42 @@ from tools import real2homeenv_path as getenvhome
 from tools import homeenv2real_path as getrealhome
 from tools import enc_homefolder
 from tools import get_encrypted_file_path as enc_path
-from tools import get_hash as hash
-from tools import get_timestamp as tstamp
+from tools import get_decrypted_file_path as dec_path
+#from tools import get_hash as hash
+from tools import checksum as hash
+#from tools import get_timestamp as tstamp
+from tools import timestamp as tstamp
 
 class Status(object):
     def __init__(self, config):
         # Config coming from the syncer
         self.config = config
         # Data for the local folders, new format
-        self.local = {}
-        self.get_local()
+       # self.get_local()
+        self.init_local()
         if not os.path.isfile(getrealhome(self.config.statusfile_path)):
             log.error("No remote file found, creating " + getrealhome(self.config.statusfile_path))
             self.create_remote_statusfile()
-        else:
-            self.get_remote()
+       # else:
+       #     self.get_remote()
+        self.init_remote()
+        self.init_statusfile()
+        self.first_sync()
 
 
 # TODO: use sync_folder instead of path everywhere, call them snyc_folders in config.yaml
 
+#
     def refresh(self, key):
         self.update_local()
         self.update_remote()
 
-
+#
     def get_local(self):
         for sync_folder in self.config.folders:
             self.register_local_folder(sync_folder)
 
-
+#
     def get_remote(self):
         try:
             with open(getrealhome(self.config.statusfile_path), 'r') as stream:
@@ -50,6 +57,81 @@ class Status(object):
             return("FileNotFoundError")
 
 
+    def init_local(self):
+        self.local = {}
+        #gets list of files in local
+        for sync_folder in self.config.folders:
+            sync_folder_path = sync_folder['path']
+            self.local[sync_folder_path] = {}
+            for path, subdirs, files in os.walk(getrealhome(sync_folder_path)):
+                for name in files:
+                    obj = os.path.join(path, name)
+                    self.set_local_record(sync_folder_path, getenvhome(obj), 'exists')
+
+    def init_remote(self):
+        self.remote = {}
+        #gets list of files in remote
+        for sync_folder in self.config.folders:
+            sync_folder_path = sync_folder['path']
+            self.remote[sync_folder_path] = {}
+            for path, subdirs, files in os.walk(getrealhome(self.config.enc_mainfolder)):
+                for name in files:
+                    obj = os.path.join(path, name)
+                    self.set_remote_record(sync_folder_path, getenvhome(obj), 'exists')
+
+    def init_statusfile(self):
+        self.status = {}
+
+    def first_sync(self):
+        local_set = self.get_set(self.local)
+        remote_set = self.get_set(self.remote)
+        print("###############")
+        print(remote_set)
+        # if local but not remote, not status -> copy to remote, update status
+        for obj in local_set - remote_set:
+            print("NEW LOCAL OBJECT")
+            print(obj)
+            managed_file = File(obj)
+            managed_file.encrypt(obj, self.config)
+            self.set_status_record(obj, 'exists')
+        # if remote but not local, not status -> copy to local, update status
+        for obj in remote_set - local_set:
+            print("NEW REMOTE OBJECT")
+            print(obj)
+            managed_file = File(obj)
+            managed_file.decrypt(obj, self.config)
+            #self.set_status_record(obj, 'exists')
+        # if remote but not local, not status -> copy to local, update status
+        # if local and status but not remote -> delete local, mark deleted on status
+        # if remote and status but not local -> delete remote, mark deleted on status
+        # if local and remote but not status -> check timestamp, choose newer, update status
+        # if status but not local and not remote -> mark deleted on status
+        pass
+
+    def get_set(self, entries):
+        object_set = set()
+        for sync_folder in self.config.folders:
+            sync_folder_path = sync_folder['path']
+            for obj in entries[sync_folder_path]:
+                object_set.add(obj)
+        return object_set
+
+
+    def continuous_sync(self):
+        print(self.local)
+        print("----")
+        print(self.remote)
+        print("----")
+        print(self.status)
+        # if local but not remote, not status -> copy to remote, update status
+        # if remote but not local, not status -> copy to local, update status
+        # if local and status but not remote -> delete local, mark deleted on status
+        # if remote and status but not local -> delete remote, mark deleted on status
+        # if local and remote but not status -> check timestamp, choose newer, update status
+        # if status but not local and not remote -> mark deleted on status
+        pass
+
+#
     def update_local(self):
         log.debug("######## Updating LOCAL")
         for sync_folder in self.config.folders:
@@ -179,6 +261,8 @@ class Status(object):
         self.set_remote_file_record(sync_folder_path, object, self.local[sync_folder_path][object]['state'])
 
 
+
+    # Delete when set_local_record is working
     def set_local_file_record(self, sync_folder_path, local_file, state):
         if local_file not in self.local[sync_folder_path]:
             self.local[sync_folder_path][local_file] = {}
@@ -203,7 +287,15 @@ class Status(object):
         if not state == '':
             self.local[sync_folder_path][local_file]['state'] = state
 
+    # Improved version of set_local_file_record
+    def set_local_record(self, sync_folder_path, local_file, state):
+        if local_file not in self.local[sync_folder_path]:
+            self.local[sync_folder_path][local_file] = {}
+        self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
+        self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
+
         
+    # Delete when set_remote_record is working
     def set_remote_file_record(self, sync_folder_path, remote_file, state):
         if remote_file not in self.remote[sync_folder_path]:
             self.remote[sync_folder_path][remote_file] = {}
@@ -224,6 +316,20 @@ class Status(object):
         if not state == '':
             self.remote[sync_folder_path][remote_file]['state'] = state
 
+
+    # Improved version of set_remote_file_record
+    def set_remote_record(self, sync_folder_path, remote_file, state):
+        file_path = dec_path(remote_file, self.config)
+        if file_path not in self.remote[sync_folder_path]:
+            self.remote[sync_folder_path][file_path] = {}
+        self.remote[sync_folder_path][file_path]['remote_file_timestamp'] = tstamp(remote_file)
+        self.remote[sync_folder_path][file_path]['remote_file_checksum'] = hash(remote_file)
+        
+    def set_status_record(self, status_file, state):
+        if status_file not in self.status:
+            self.status[status_file] = {}
+        self.status[status_file]['local_file_checksum'] = hash(status_file)
+        self.status[status_file]['remote_file_checksum'] = hash(status_file)
 
     def create_remote_statusfile(self):
         self.remote = {}
