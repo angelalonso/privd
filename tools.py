@@ -21,7 +21,7 @@ def homeenv2real_path(path):
 def enc_homefolder(config, path):
     real_enc_mainfolder =  config.enc_mainfolder.replace('$HOME', os.environ['HOME'])
     new_path = path.replace(config.enc_mainfolder, real_enc_mainfolder)
-    return new_path.replace('$HOME', '/_HOME')
+    return new_path
 
 def get_encrypted_file_path(file, config, path):
     return file.replace(path, config.enc_mainfolder + path) + '.gpg'

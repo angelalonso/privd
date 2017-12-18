@@ -9,5 +9,5 @@ statusfile: '.status'
 folders:
   - name: 'main'
     path: '$HOME/.privd/source'
-  - name: 'main_2'
-    path: '$HOME/.privd/source2'
+#  - name: 'main_2'
+#    path: '$HOME/.privd/source2'
