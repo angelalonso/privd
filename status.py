@@ -33,30 +33,6 @@ class Status(object):
 
 # TODO: use sync_folder instead of path everywhere, call them snyc_folders in config.yaml
 
-#
-    def refresh(self, key):
-        self.update_local()
-        self.update_remote()
-
-#
-    def get_local(self):
-        for sync_folder in self.config.folders:
-            self.register_local_folder(sync_folder)
-
-#
-    def get_remote(self):
-        try:
-            with open(getrealhome(self.config.statusfile_path), 'r') as stream:
-                try:
-                    self.remote = yaml.load(stream)
-                except yaml.YAMLError as exc:
-                    log.error(exc)
-                    return("YAMLError")
-        except FileNotFoundError:
-            log.error("File " + getrealhome(self.config.statusfile_path) + " does not exist")
-            return("FileNotFoundError")
-
-
     def init_local(self):
         self.local = {}
         #gets list of files in local
@@ -130,107 +106,6 @@ class Status(object):
         # if local and remote but not status -> check timestamp, choose newer, update status
         # if status but not local and not remote -> mark deleted on status
         pass
-
-#
-    def update_local(self):
-        log.debug("######## Updating LOCAL")
-        for sync_folder in self.config.folders:
-            sync_folder_path = sync_folder['path']
-            log.debug("Updating folder " + sync_folder_path)
-            objects = glob.glob(getrealhome(sync_folder_path) + "/**/*", recursive=True)
-
-            registered_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated'))
-            object_set = set()
-            for obj in objects:
-                if os.path.isfile(obj):
-                    object_set.add(getenvhome(obj))
-            # Set deleted objects as deleted
-            for obj in registered_set - object_set:
-                self.delete_local_file(sync_folder_path, obj)
-            # Set exists or recreated objects as such
-            for obj in object_set - registered_set:
-                try: 
-                    if self.local[sync_folder_path][obj]['state'] in ('deleted'):
-                        self.recreate_local_file(sync_folder_path, obj)
-                        # Necessary?
-                    #else:
-                    #    self.new_local_file(sync_folder_path, obj)
-                except KeyError:
-                    self.new_local_file(sync_folder_path, obj)
-            # Check if updated, then Do something with updated files
-            for obj in object_set.intersection(registered_set):
-                local_file_timestamp = float(self.local[sync_folder_path][obj]['local_file_timestamp'])
-                if tstamp(obj) > local_file_timestamp:
-                    if not hash(obj) == self.local[sync_folder_path][obj]['local_file_checksum']:
-                        log.debug(obj + " has changed contents locally")
-                        self.set_local_file_record(sync_folder_path, obj, '')
-                    else:
-                        log.debug(obj + " has been updated locally but did not change")
-
-            log.debug(" - Local files marked as EXISTING:")
-            log.debug(self.get_local_files_w_state(sync_folder_path, ('exists')))
-            log.debug(" - Local files marked as DELETED:")
-            log.debug(self.get_local_files_w_state(sync_folder_path, ('deleted')))
-            log.debug(" - Local files marked as RECREATED:")
-            log.debug(self.get_local_files_w_state(sync_folder_path, ('recreated')))
-
-
-    def update_remote(self):
-        log.debug("######## Updating REMOTE")
-        self.get_remote()
-        # once remote is loaded, we compare, change(encrypt and update data), write statusfile again
-        for sync_folder in self.config.folders:
-            sync_folder_path = sync_folder['path']
-            log.debug("Updating remote folder " + sync_folder_path)
-            registered_local_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated', 'deleted'))
-            # TODO: get also the real remote files to compare
-            registered_remote_set = self.get_remote_files_w_state(sync_folder_path, ('exists', 'recreated', 'deleted'))
-            log.debug(" - Files in Local:")
-            log.debug(registered_local_set)
-            log.debug(" - Files in Remote:")
-            log.debug(registered_remote_set)
-            # is local but not remote? - NOT INCLUDING MARKED AS DELETED
-            log.debug(" - Files not in Remote:")
-            print(" - Files not in Remote:")
-            for obj in registered_local_set - registered_remote_set:
-                log.debug("   - " + obj)
-                print("   - " + obj)
-                managed_file = File(obj)
-                enc_file_path = self.local[sync_folder_path][obj]['encrypted_file_path']
-                managed_file.encrypt(enc_file_path, self.config)
-                self.set_remote_file_record(sync_folder_path, obj, 'exists')
-            log.debug(" - Files not in Local:")
-            print(" - Files not in Local:")
-            # is remote but not local? - NOT INCLUDING MARKED AS DELETED
-            for obj in registered_remote_set - registered_local_set:
-                log.debug("   - " + obj)
-                print("   - " + obj)
-                managed_file = File(obj)
-                enc_file_path = self.remote[sync_folder_path][obj]['encrypted_file_path']
-                managed_file.decrypt(enc_file_path, self.config)
-                self.set_local_file_record(sync_folder_path, obj, 'exists')
-            log.debug(" - Files in both:")
-            print(" - Files in both:")
-            # is on both? INCLUDING MARKED AS DELETED
-            for obj in registered_local_set.intersection(registered_remote_set):
-                log.debug("   - " + obj)
-                print("   - " + obj)
-                print("local:")
-                print(float(self.local[sync_folder_path][obj]['remote_file_timestamp']))
-                print("remote:")
-                print(float(self.remote[sync_folder_path][obj]['remote_file_timestamp']))
-                if float(self.local[sync_folder_path][obj]['local_file_timestamp']) > float(self.remote[sync_folder_path][obj]['remote_file_timestamp']):
-                    self.update_remote_file(sync_folder_path, obj)
-                elif float(self.local[sync_folder_path][obj]['local_file_timestamp']) < float(self.remote[sync_folder_path][obj]['remote_file_timestamp']):
-                    # not there on first run
-                    if self.local[sync_folder_path][obj]['remote_file_checksum'] != self.remote[sync_folder_path][obj]['remote_file_checksum']:
-                        self.update_local_file(sync_folder_path, obj)
-                else:
-                    log.debug("     + both are the same")
-        # TODO: when shall I write? 
-        # TODO: do I need to reload? what if I remove files on the fly?
-        self.write_remote_statusfile()
-
 
     def update_local_file(self, sync_folder_path, object):
         log.debug("     * remote is newer - " + self.remote[sync_folder_path][object]['state'])
@@ -387,3 +262,128 @@ class Status(object):
     def recreate_local_file(self, sync_folder_path, local_file): 
         self.set_local_file_record(sync_folder_path, local_file, 'recreated')
         
+#
+    def refresh(self, key):
+        self.update_local()
+        self.update_remote()
+
+#
+    def get_local(self):
+        for sync_folder in self.config.folders:
+            self.register_local_folder(sync_folder)
+
+#
+    def get_remote(self):
+        try:
+            with open(getrealhome(self.config.statusfile_path), 'r') as stream:
+                try:
+                    self.remote = yaml.load(stream)
+                except yaml.YAMLError as exc:
+                    log.error(exc)
+                    return("YAMLError")
+        except FileNotFoundError:
+            log.error("File " + getrealhome(self.config.statusfile_path) + " does not exist")
+            return("FileNotFoundError")
+
+
+#
+    def update_local(self):
+        log.debug("######## Updating LOCAL")
+        for sync_folder in self.config.folders:
+            sync_folder_path = sync_folder['path']
+            log.debug("Updating folder " + sync_folder_path)
+            objects = glob.glob(getrealhome(sync_folder_path) + "/**/*", recursive=True)
+
+            registered_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated'))
+            object_set = set()
+            for obj in objects:
+                if os.path.isfile(obj):
+                    object_set.add(getenvhome(obj))
+            # Set deleted objects as deleted
+            for obj in registered_set - object_set:
+                self.delete_local_file(sync_folder_path, obj)
+            # Set exists or recreated objects as such
+            for obj in object_set - registered_set:
+                try: 
+                    if self.local[sync_folder_path][obj]['state'] in ('deleted'):
+                        self.recreate_local_file(sync_folder_path, obj)
+                        # Necessary?
+                    #else:
+                    #    self.new_local_file(sync_folder_path, obj)
+                except KeyError:
+                    self.new_local_file(sync_folder_path, obj)
+            # Check if updated, then Do something with updated files
+            for obj in object_set.intersection(registered_set):
+                local_file_timestamp = float(self.local[sync_folder_path][obj]['local_file_timestamp'])
+                if tstamp(obj) > local_file_timestamp:
+                    if not hash(obj) == self.local[sync_folder_path][obj]['local_file_checksum']:
+                        log.debug(obj + " has changed contents locally")
+                        self.set_local_file_record(sync_folder_path, obj, '')
+                    else:
+                        log.debug(obj + " has been updated locally but did not change")
+
+            log.debug(" - Local files marked as EXISTING:")
+            log.debug(self.get_local_files_w_state(sync_folder_path, ('exists')))
+            log.debug(" - Local files marked as DELETED:")
+            log.debug(self.get_local_files_w_state(sync_folder_path, ('deleted')))
+            log.debug(" - Local files marked as RECREATED:")
+            log.debug(self.get_local_files_w_state(sync_folder_path, ('recreated')))
+
+#
+    def update_remote(self):
+        log.debug("######## Updating REMOTE")
+        self.get_remote()
+        # once remote is loaded, we compare, change(encrypt and update data), write statusfile again
+        for sync_folder in self.config.folders:
+            sync_folder_path = sync_folder['path']
+            log.debug("Updating remote folder " + sync_folder_path)
+            registered_local_set = self.get_local_files_w_state(sync_folder_path, ('exists', 'recreated', 'deleted'))
+            # TODO: get also the real remote files to compare
+            registered_remote_set = self.get_remote_files_w_state(sync_folder_path, ('exists', 'recreated', 'deleted'))
+            log.debug(" - Files in Local:")
+            log.debug(registered_local_set)
+            log.debug(" - Files in Remote:")
+            log.debug(registered_remote_set)
+            # is local but not remote? - NOT INCLUDING MARKED AS DELETED
+            log.debug(" - Files not in Remote:")
+            print(" - Files not in Remote:")
+            for obj in registered_local_set - registered_remote_set:
+                log.debug("   - " + obj)
+                print("   - " + obj)
+                managed_file = File(obj)
+                enc_file_path = self.local[sync_folder_path][obj]['encrypted_file_path']
+                managed_file.encrypt(enc_file_path, self.config)
+                self.set_remote_file_record(sync_folder_path, obj, 'exists')
+            log.debug(" - Files not in Local:")
+            print(" - Files not in Local:")
+            # is remote but not local? - NOT INCLUDING MARKED AS DELETED
+            for obj in registered_remote_set - registered_local_set:
+                log.debug("   - " + obj)
+                print("   - " + obj)
+                managed_file = File(obj)
+                enc_file_path = self.remote[sync_folder_path][obj]['encrypted_file_path']
+                managed_file.decrypt(enc_file_path, self.config)
+                self.set_local_file_record(sync_folder_path, obj, 'exists')
+            log.debug(" - Files in both:")
+            print(" - Files in both:")
+            # is on both? INCLUDING MARKED AS DELETED
+            for obj in registered_local_set.intersection(registered_remote_set):
+                log.debug("   - " + obj)
+                print("   - " + obj)
+                print("local:")
+                print(float(self.local[sync_folder_path][obj]['remote_file_timestamp']))
+                print("remote:")
+                print(float(self.remote[sync_folder_path][obj]['remote_file_timestamp']))
+                if float(self.local[sync_folder_path][obj]['local_file_timestamp']) > float(self.remote[sync_folder_path][obj]['remote_file_timestamp']):
+                    self.update_remote_file(sync_folder_path, obj)
+                elif float(self.local[sync_folder_path][obj]['local_file_timestamp']) < float(self.remote[sync_folder_path][obj]['remote_file_timestamp']):
+                    # not there on first run
+                    if self.local[sync_folder_path][obj]['remote_file_checksum'] != self.remote[sync_folder_path][obj]['remote_file_checksum']:
+                        self.update_local_file(sync_folder_path, obj)
+                else:
+                    log.debug("     + both are the same")
+        # TODO: when shall I write? 
+        # TODO: do I need to reload? what if I remove files on the fly?
+        self.write_remote_statusfile()
+
+
