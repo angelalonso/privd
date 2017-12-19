@@ -34,14 +34,9 @@ class Syncer(object):
             log.debug("Encrypted Main Folder does not exist, creating " + getrealhome(self.config.enc_mainfolder))
             os.makedirs(getrealhome(self.config.enc_mainfolder))
 
-      # DELETE?
-      #  if not os.path.isfile(getrealhome(self.config.statusfile_path)):
-      #      log.debug("Status File does not exist, creating " + getrealhome(self.config.statusfile_path))
-      #      self.status.write_remote_statusfile()
-
     def daemon(self):
-      # DELETE?
-      #  self.status.refresh(self.config.key)
-        self.status.continuous_sync()
+        self.status.read_local()
+        self.status.read_remote()
+        self.status.first_sync()
 
 

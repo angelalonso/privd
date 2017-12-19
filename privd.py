@@ -31,9 +31,8 @@ if __name__ == "__main__":
 
     syncer = Syncer(config, key)
     while True:
-        print("------------")
-        log.debug("")
+        print("---NEW RUN---------")
         log.debug(str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
         syncer.daemon()
-        time.sleep(1)
+        time.sleep(10)
   

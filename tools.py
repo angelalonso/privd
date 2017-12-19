@@ -31,6 +31,14 @@ def get_decrypted_file_path(enc_file, config):
     result = enc_file.replace('.gpg','').replace(config.enc_mainfolder + '/', '').replace('_HOME', '$HOME')
     return result
 
+def get_sync_folder_path(file, config):
+    result = 'path'
+    for folder in config.folders:
+        if folder['path'] + '/' in file:
+            result = folder['path']
+            break
+    return result
+
 
 # deleted when timestamp() works
 def get_timestamp(file):

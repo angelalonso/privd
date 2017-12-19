@@ -46,6 +46,12 @@ class File(object):
         except FileNotFoundError: pass
         cmd = 'gpg -d -o ' + self.path + ' ' + real_file_enc_path
         cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
+        for i in range(100000):
+            dec_done = os.path.isfile(self.path)
+            if dec_done:
+                break
+            else:
+                continue
 
 
     def encrypt(self, file, config):
@@ -63,6 +69,13 @@ class File(object):
         except FileNotFoundError: pass
         cmd = 'gpg -e -r ' + config.key.id + ' --trust-model always --output ' + real_file_enc_path + ' ' + self.path
         cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
+        for i in range(100000):
+            enc_done = os.path.isfile(real_file_enc_path)
+            if enc_done:
+                break
+            else:
+                continue
+
 
 
     def decrypt(self, file_enc, config): 
