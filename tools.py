@@ -55,7 +55,7 @@ def timestamp(file):
         return 0
 
 
-def checksum(file):
+def checksum(file_in):
     """ Gets the checksum of the file                                                                                                                           
     Hashlib part taken from https://stackoverflow.com/questions/22058048/hashing-a-file-in-python
     """                       
@@ -63,7 +63,21 @@ def checksum(file):
     BUF_SIZE = 65536          
     # SHA1 one is enough for this
     sha1 = hashlib.sha1()     
-    realfile = homeenv2real_path(file)
+    realfile = homeenv2real_path(file_in)
+    #First, wait for the file to be there
+    for i in range(10000):                                  
+        file_created = os.path.isfile(realfile)        
+        if file_created:                                       
+            break                                          
+        else:                                              
+            continue
+    #second, wait for it to have content
+    for i in range(1000000):                                  
+        enc_done = os.stat(realfile).st_size        
+        if enc_done > 0:                                       
+            break                                          
+        else:                                              
+            continue
     try:                      
         with open(realfile, 'rb') as f:
             while True:       
@@ -73,10 +87,10 @@ def checksum(file):
                 sha1.update(data)
         file_sha1 = "{0}".format(sha1.hexdigest())
     except FileNotFoundError: 
-        log.debug("File " + file + " does not exist")
+        log.debug("File " + file_in + " does not exist")
         file_sha1 = ''
     except IsADirectoryError:
-        log.debug("File " + file + " is a directory")
+        log.debug("File " + file_in + " is a directory")
         file_sha1 = ''
     return file_sha1
 

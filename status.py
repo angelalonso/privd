@@ -1,6 +1,7 @@
 import glob
 import logging as log
 import os
+import pprint
 import time
 import yaml
 from files import File as File
@@ -59,12 +60,13 @@ class Status(object):
             self.status[sync_folder_path] = {}
 
     def first_sync(self):
+        pp = pprint.PrettyPrinter(indent=4)
         print("-- local --")
-        print(self.local)
+        pp.pprint(self.local)
         print("-- remote --")
-        print(self.remote)
+        pp.pprint(self.remote)
         print("-- status --")
-        print(self.status)
+        pp.pprint(self.status)
         local_set = self.get_set(self.local)
         remote_set = self.get_set(self.remote)
         status_set = self.get_set(self.status)
@@ -145,31 +147,6 @@ class Status(object):
 
 
 
-    # Delete when set_local_record is working
-    def set_local_file_record(self, sync_folder_path, local_file, state):
-        if local_file not in self.local[sync_folder_path]:
-            self.local[sync_folder_path][local_file] = {}
-        # TODO: error if it does not exist maybe?
-        real_local_file = getrealhome(local_file)
-        for i in range(100000):
-            dec_done = os.path.isfile(real_local_file)
-            if dec_done:
-                break
-            else:
-                continue
-        self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(real_local_file)
-        self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(real_local_file)
-        try:
-            self.local[sync_folder_path][local_file]['remote_file_checksum'] = self.remote[sync_folder_path][local_file]['remote_file_checksum']
-        except AttributeError: 
-            self.local[sync_folder_path][local_file]['remote_file_checksum'] = ''
-        self.local[sync_folder_path][local_file]['encrypted_file_path'] = self.config.enc_mainfolder + "/" + local_file.replace('$HOME', '_HOME') + ".gpg"
-        if state == 'deleted':
-            self.local[sync_folder_path][local_file]['local_file_timestamp'] = format(time.time())
-        # Set no state to keep the same one
-        if not state == '':
-            self.local[sync_folder_path][local_file]['state'] = state
-
     # Improved version of set_local_file_record
     def set_local_record(self, sync_folder_path, local_file, state):
         if local_file not in self.local[sync_folder_path]:
@@ -205,23 +182,15 @@ class Status(object):
         file_path = dec_path(remote_file, self.config)
         if file_path not in self.remote[sync_folder_path]:
             self.remote[sync_folder_path][file_path] = {}
-        print("----------first remote file ----------------")
-        print(remote_file)
         self.remote[sync_folder_path][file_path]['remote_file_timestamp'] = tstamp(remote_file)
         self.remote[sync_folder_path][file_path]['remote_file_checksum'] = hash(remote_file)
         
 
     def set_status_record(self, local_file, state):
         sync_folder_path = get_sync_folder_path(local_file, self.config)
-        print("--------------------------TEST recording:")
-        print(sync_folder_path)
         if local_file not in self.status[sync_folder_path]:
             self.status[sync_folder_path][local_file] = {}
-        print(local_file)
-        print(enc_path(local_file, self.config))
         real_remote_file = enc_homefolder(self.config, enc_path(local_file, self.config))
-        print("----------REAAAAAAAAAAAAAAAAAAAAAL remote file ----------------")
-        print(real_remote_file)
         self.status[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
         self.status[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
         self.status[sync_folder_path][local_file]['remote_file_checksum'] = hash(real_remote_file)
@@ -409,4 +378,29 @@ class Status(object):
         # TODO: do I need to reload? what if I remove files on the fly?
         self.write_remote_statusfile()
 
+
+    # Delete when set_local_record is working
+    def set_local_file_record(self, sync_folder_path, local_file, state):
+        if local_file not in self.local[sync_folder_path]:
+            self.local[sync_folder_path][local_file] = {}
+        # TODO: error if it does not exist maybe?
+        real_local_file = getrealhome(local_file)
+        for i in range(100000):
+            dec_done = os.path.isfile(real_local_file)
+            if dec_done:
+                break
+            else:
+                continue
+        self.local[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(real_local_file)
+        self.local[sync_folder_path][local_file]['local_file_checksum'] = hash(real_local_file)
+        try:
+            self.local[sync_folder_path][local_file]['remote_file_checksum'] = self.remote[sync_folder_path][local_file]['remote_file_checksum']
+        except AttributeError: 
+            self.local[sync_folder_path][local_file]['remote_file_checksum'] = ''
+        self.local[sync_folder_path][local_file]['encrypted_file_path'] = self.config.enc_mainfolder + "/" + local_file.replace('$HOME', '_HOME') + ".gpg"
+        if state == 'deleted':
+            self.local[sync_folder_path][local_file]['local_file_timestamp'] = format(time.time())
+        # Set no state to keep the same one
+        if not state == '':
+            self.local[sync_folder_path][local_file]['state'] = state
 
