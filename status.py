@@ -107,6 +107,9 @@ class Status(object):
         for obj in status_set - local_set:
             if obj not in remote_set:
                 self.set_status_record(obj, 'deleted')
+        # OTHER:
+        # if remote checksum in status and remote are different but timestamps are equal: recheck checksum
+
 
     def get_set(self, entries):
         object_set = set()
@@ -161,12 +164,13 @@ class Status(object):
             self.remote[sync_folder_path][remote_file] = {}
         # TODO: error if it does not exist maybe?
         real_remote_file = enc_homefolder(self.config, self.local[sync_folder_path][remote_file]['encrypted_file_path'])
-        for i in range(1000):
-            enc_done = os.path.isfile(real_remote_file)
-            if enc_done:
-                break
-            else:
-                continue
+        #NEEDED?
+        #for i in range(1000):
+        #    enc_done = os.path.isfile(real_remote_file)
+        #    if enc_done:
+        #        break
+        #    else:
+        #        continue
         self.remote[sync_folder_path][remote_file]['remote_file_timestamp'] = tstamp(real_remote_file)
         self.remote[sync_folder_path][remote_file]['remote_file_checksum'] = hash(real_remote_file)
         self.local[sync_folder_path][remote_file]['remote_file_timestamp'] = tstamp(real_remote_file)
