@@ -37,6 +37,7 @@ class Syncer(object):
     def daemon(self):
         self.status.read_local()
         self.status.read_remote()
-        self.status.first_sync()
+        #self.status.first_sync()
+        self.status.syncer()
 
 

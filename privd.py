@@ -35,5 +35,5 @@ if __name__ == "__main__":
         print(str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
         log.debug(str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
         syncer.daemon()
-        time.sleep(10)
+        time.sleep(30)
   
