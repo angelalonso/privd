@@ -67,8 +67,6 @@ class Status(object):
         for sync_folder in self.config.folders:
             sync_folder_path = sync_folder['path']
             self.status[sync_folder_path] = {}
-        print("--")
-        print(self.status)
         self.write_statusfile()
 
 
@@ -89,13 +87,13 @@ class Status(object):
         local_set = self.get_set(self.local)
         remote_set = self.get_set(self.remote)
         status_set = self.get_set(self.status)
-        print("###############")
         # if local but not remote, not status -> copy to remote, update status
         for obj in local_set - remote_set - status_set:
             print("NEW LOCAL OBJECT")
             print(obj)
             managed_file = File(obj)
             managed_file.encrypt(obj, self.config)
+            self.set_remote_record(get_sync_folder_path(obj, self.config), getenvhome(obj), 'exists')
             self.set_status_record(obj, 'exists')
         # if remote but not local, not status -> copy to local, update status
         for obj in remote_set - local_set - status_set:
@@ -103,32 +101,34 @@ class Status(object):
             print(obj)
             managed_file = File(obj)
             managed_file.decrypt(obj, self.config)
+            self.set_local_record(get_sync_folder_path(obj, self.config), getenvhome(obj), 'exists') 
             self.set_status_record(obj, 'exists')
         # if local and status but not remote -> delete local, mark deleted on status
         for obj in local_set - remote_set:
             if obj in status_set:
                 print("DELETED REMOTE OBJECT")
                 print(obj)
-                os.remove(obj)
+                try: #it could have been deleted meanwhile
+                    os.remove(obj)
+                except FileNotFoundError: pass
                 self.set_status_record(obj, 'deleted')
         # if remote and status but not local -> delete remote, mark deleted on status
-        for obj in local_set - remote_set:
+        for obj in remote_set - local_set:
             if obj in status_set:
                 print("DELETED LOCAL OBJECT")
                 print(obj)
-                os.remove(enc_path(obj, self.config))
+                os.remove(getrealhome(enc_path(obj, self.config)))
                 self.set_status_record(obj, 'deleted')
         # if local and remote but not status -> check timestamp, choose newer, update status
         for obj in local_set.intersection(status_set):
-            # TODO: is "not in status" different?
             if obj not in status_set:
-                print("CONFLICT ON OBJECT " + obj)
-                #self.resolve_conflict_no_status(obj)
-            print("CONFLICT ON OBJECT " + obj)
-            self.resolve_conflict(obj)
+                print("OBJECT IN BOTH, NO STATUS")
+            else:
+                print("OBJECT IN LOCAL, REMOTE AND STATUS")
         # if status but not local and not remote -> mark deleted on status
         for obj in status_set - local_set:
             if obj not in remote_set:
+                print("OBJECT IN STATUS AND STATUS ONLY")
                 self.set_status_record(obj, 'deleted')
         # OTHER:
         # if remote checksum in status and remote are different but timestamps are equal: recheck checksum
@@ -137,8 +137,40 @@ class Status(object):
 
 
     def resolve_conflict(self, obj):
+        # Check if we have status of that object
+        real_remote_file = enc_homefolder(self.config, enc_path(obj, self.config))
+        try:
+            current_status = self.status[get_sync_folder_path(obj, self.config)][obj]
+            #Remote has changed
+            if current_status['remote_file_checksum'] != hash(real_remote_file):
+                if current_status['remote_file_timestamp'] < tstamp(real_remote_file):
+                    print("NEWER REMOTE OBJECT")
+                    print(obj)
+                    managed_file = File(obj)                       
+                    managed_file.decrypt(obj, self.config)         
+                    self.set_local_record(get_sync_folder_path(obj, self.config), getenvhome(obj), 'exists') 
+                    self.set_status_record(obj, 'exists') 
+                elif current_status['remote_file_timestamp'] > tstamp(real_remote_file):
+                    print("ERROR: status has a newer remote timestamp")
+            #Local has changed
+            if current_status['local_file_checksum'] != hash(obj):
+                if current_status['local_file_timestamp'] < tstamp(obj):
+                    print("NEWER LOCAL OBJECT")
+                    print(obj)
+                    managed_file = File(obj)                       
+                    managed_file.encrypt(obj, self.config)         
+                    self.set_remote_record(get_sync_folder_path(obj, self.config), getenvhome(obj), 'exists')
+                    self.set_status_record(obj, 'exists') 
+        
+                #update 
+            #Both have changed
+            print("++++")
+            print(current_status)
+            print("----")
+        except KeyError:
+            print("////")
+
         # WHat happens if timestamp or remote is newer, then we update, then the other one and so on?
-        pass
 
     def get_set(self, entries):
         object_set = set()
@@ -159,6 +191,7 @@ class Status(object):
             managed_file = File(object)
             enc_file_path = self.remote[sync_folder_path][object]['encrypted_file_path']
             managed_file.decrypt(enc_file_path, self.config)
+            self.set_local_record(get_sync_folder_path(object, self.config), getenvhome(object), 'exists') 
         self.set_local_file_record(sync_folder_path, object, self.remote[sync_folder_path][object]['state'])
 
 
@@ -175,6 +208,7 @@ class Status(object):
             managed_file = File(object)
             enc_file_path = self.remote[sync_folder_path][object]['encrypted_file_path']
             managed_file.encrypt(enc_file_path, self.config)
+            self.set_remote_record(get_sync_folder_path(object, self.config), getenvhome(object), 'exists')
         self.set_remote_file_record(sync_folder_path, object, self.local[sync_folder_path][object]['state'])
 
 
@@ -224,12 +258,14 @@ class Status(object):
         if local_file not in self.status[sync_folder_path]:
             self.status[sync_folder_path][local_file] = {}
         real_remote_file = enc_homefolder(self.config, enc_path(local_file, self.config))
-        self.status[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
-        self.status[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
-        self.status[sync_folder_path][local_file]['remote_file_checksum'] = hash(real_remote_file)
-        self.status[sync_folder_path][local_file]['remote_file_timestamp'] = tstamp(real_remote_file)
-        self.status[sync_folder_path][local_file]['remote_file_path'] = real_remote_file
+        if state != 'deleted':
+            self.status[sync_folder_path][local_file]['local_file_checksum'] = hash(local_file)
+            self.status[sync_folder_path][local_file]['local_file_timestamp'] = tstamp(local_file)
+            self.status[sync_folder_path][local_file]['remote_file_checksum'] = hash(real_remote_file)
+            self.status[sync_folder_path][local_file]['remote_file_timestamp'] = tstamp(real_remote_file)
+            self.status[sync_folder_path][local_file]['remote_file_path'] = real_remote_file
         self.status[sync_folder_path][local_file]['state'] = state
+
 
     def get_local_files(self, sync_folder_path):
         result = set()
