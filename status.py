@@ -11,9 +11,7 @@ from tools import enc_homefolder
 from tools import get_encrypted_file_path as enc_path
 from tools import get_decrypted_file_path as dec_path
 from tools import get_sync_folder_path
-#from tools import get_hash as hash
 from tools import checksum as hash
-#from tools import get_timestamp as tstamp
 from tools import timestamp as tstamp
 
 class Status(object):
@@ -21,15 +19,10 @@ class Status(object):
         # Config coming from the syncer
         self.config = config
         self.read_local()
-        if not os.path.isfile(getrealhome(self.config.statusfile_path)):
-            log.error("No remote file found, creating " + getrealhome(self.config.statusfile_path))
-            self.create_remote_statusfile()
         self.read_remote()
         self.read_statusfile()
         self.first_sync()
 
-
-# TODO: use sync_folder instead of path everywhere, call them snyc_folders in config.yaml
 
     def read_local(self):
         self.local = {}
@@ -42,6 +35,7 @@ class Status(object):
                     obj = os.path.join(path, name)
                     self.set_local_record(sync_folder_path, getenvhome(obj), 'exists')
 
+
     def read_remote(self):
         self.remote = {}
         #gets list of files in remote
@@ -53,11 +47,36 @@ class Status(object):
                     obj = os.path.join(path, name)
                     self.set_remote_record(sync_folder_path, getenvhome(obj), 'exists')
 
+
     def read_statusfile(self):
+        try:
+            with open(getrealhome(self.config.statusfile_path), 'r') as stream:
+                try:
+                    self.status = yaml.load(stream)
+                except yaml.YAMLError as exc:
+                    log.error(exc)
+                    return("YAMLError")
+        except FileNotFoundError:
+            log.error("File " + getrealhome(self.config.statusfile_path) + " does not exist")
+            log.error("No remote file found, creating " + getrealhome(self.config.statusfile_path))
+            self.create_statusfile()
+
+
+    def create_statusfile(self):
         self.status = {}
         for sync_folder in self.config.folders:
             sync_folder_path = sync_folder['path']
             self.status[sync_folder_path] = {}
+        print("--")
+        print(self.status)
+        self.write_statusfile()
+
+
+    def write_statusfile(self):
+        log.debug("######## Writing to status file: " + getrealhome(self.config.statusfile_path))
+        with open(getrealhome(self.config.statusfile_path), 'w') as outfile:
+            yaml.dump(self.status, outfile, default_flow_style=False)
+
 
     def first_sync(self):
         pp = pprint.PrettyPrinter(indent=4)
@@ -100,16 +119,26 @@ class Status(object):
                 os.remove(enc_path(obj, self.config))
                 self.set_status_record(obj, 'deleted')
         # if local and remote but not status -> check timestamp, choose newer, update status
-        for obj in local_set - status_set:
-            if obj in remote_set:
+        for obj in local_set.intersection(status_set):
+            # TODO: is "not in status" different?
+            if obj not in status_set:
                 print("CONFLICT ON OBJECT " + obj)
+                #self.resolve_conflict_no_status(obj)
+            print("CONFLICT ON OBJECT " + obj)
+            self.resolve_conflict(obj)
         # if status but not local and not remote -> mark deleted on status
         for obj in status_set - local_set:
             if obj not in remote_set:
                 self.set_status_record(obj, 'deleted')
         # OTHER:
         # if remote checksum in status and remote are different but timestamps are equal: recheck checksum
+        self.write_statusfile()
+        self.read_statusfile()
 
+
+    def resolve_conflict(self, obj):
+        # WHat happens if timestamp or remote is newer, then we update, then the other one and so on?
+        pass
 
     def get_set(self, entries):
         object_set = set()
@@ -201,19 +230,6 @@ class Status(object):
         self.status[sync_folder_path][local_file]['remote_file_timestamp'] = tstamp(real_remote_file)
         self.status[sync_folder_path][local_file]['remote_file_path'] = real_remote_file
         self.status[sync_folder_path][local_file]['state'] = state
-
-    def create_remote_statusfile(self):
-        self.remote = {}
-        for sync_folder in self.config.folders:
-            self.remote[sync_folder['path']] = {}
-        self.write_remote_statusfile()
-
-
-    def write_remote_statusfile(self):
-        log.debug("######## Writing to status file: " + getrealhome(self.config.statusfile_path))
-        with open(getrealhome(self.config.statusfile_path), 'w') as outfile:
-            yaml.dump(self.remote, outfile, default_flow_style=False)
-
 
     def get_local_files(self, sync_folder_path):
         result = set()
