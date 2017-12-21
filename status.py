@@ -75,6 +75,42 @@ class Status(object):
         with open(getrealhome(self.config.statusfile_path), 'w') as outfile:
             yaml.dump(self.status, outfile, default_flow_style=False)
 
+    def syncer(self):
+        '''
+        - status keeps tstamp and hash of local and remote
+          - must be kept updated at all times
+        PHASE
+        +a+status+b - everywhere 
+          - status deleted? -> delete it on a and b
+          - 
+
+        +a+status-b - deleted on b
+          - status deleted? -> delete it on a
+          - a newer than status_b and status_a? -> update status_a, recreate on b
+          - a newer than status_b? -> recreate on b
+          - a newer than status_a? -> update status_a, mark as deleted, delete from a
+          - status_a newer than a? -> mark as deleted, delete from a
+        +a-status+b - status is missing 
+          -> same as +a+status+b
+        +a-status-b - created on a
+         -> add it to b and status
+        -a+status+b - deleted on a
+          - status deleted? -> delete it on b
+          - b newer than status_a and status_b? -> update status_b, recreate on a
+          - b newer than status_a? -> recreate on a
+          - b newer than status_b? -> update status_b, mark as deleted, delete from b
+          - status_b newer than b? -> mark as deleted, delete from b
+        -a+status-b - files does not actually exist, status is wrong
+         -> mark status as deleted
+        -a-status+b - created on b
+         -> add it to a and status
+        -a-status-b - it does not exist, nothing to do
+         - nothing to compare
+
+
+        
+        '''
+        pass
 
     def first_sync(self):
         pp = pprint.PrettyPrinter(indent=4)
