@@ -81,13 +81,13 @@ class Status(object):
         - status keeps tstamp and hash of local and remote
           - must be kept updated at all times
         '''
-        #pp = pprint.PrettyPrinter(indent=4)
-        #print("local")
-        #pp.pprint(self.local)
-        #print("remote")
-        #pp.pprint(self.remote)
-        #print("status")
-        #pp.pprint(self.status)
+        pp = pprint.PrettyPrinter(indent=4)
+        print("local")
+        pp.pprint(self.local)
+        print("remote")
+        pp.pprint(self.remote)
+        print("status")
+        pp.pprint(self.status)
 
         local_set = self.get_set(self.local)
         remote_set = self.get_set(self.remote)
@@ -95,50 +95,55 @@ class Status(object):
 
         everywhere = local_set.intersection(remote_set).intersection(status_set)
         log.debug("  +a+status+b - everywhere")
-        log.debug(everywhere)
         for obj in everywhere:
             self.resolve_conflict(obj)
         
+        # does not work, tries to re-create
         deleted_on_b = local_set.intersection(status_set) - remote_set
         log.debug("  +a+status-b - deleted on b")
+        print("  +a+status-b - deleted on b")
         for obj in deleted_on_b:
+            print(obj)
             self.deleted_remote_file(obj)
         
         missing_status = local_set.intersection(remote_set) - status_set
         log.debug("  +a-status+b - status is missing")
-        log.debug(missing_status)
+        print("  +a-status+b - status is missing")
         for obj in missing_status:
+            print(obj)
             self.resolve_conflict_no_status(obj)
         
         created_on_a = local_set - status_set - remote_set
         log.debug("  +a-status-b - created on a")
-        '''
-         -> add it to b and status
-        '''
+        print("  +a-status-b - created on a")
+        for obj in created_on_a:
+            print(obj)
+            self.created_local_file(obj)
         
         deleted_on_a = remote_set.intersection(status_set) - local_set
         log.debug("  -a+status+b - deleted on a")
-        '''
-          - status deleted? -> delete it on b
-          - b newer than status_a and status_b? -> update status_b, recreate on a
-          - b newer than status_a? -> recreate on a
-          - b newer than status_b? -> update status_b, mark as deleted, delete from b
-          - status_b newer than b? -> mark as deleted, delete from b
-        '''
+        print("  -a+status+b - deleted on a")
+        for obj in deleted_on_a:
+            print(obj)
+            self.deleted_local_file(obj)
         
         status_wrong = status_set - local_set - remote_set
         log.debug("  -a+status-b - files does not actually exist, status is wrong")
-        '''
-         -> mark status as deleted
-        '''
+        print("  -a+status-b - files does not actually exist, status is wrong")
+        for obj in status_wrong:
+            print(obj)
+            # this does not work well with finding deleted files
+            #self.update_status(obj, 'deleted')
+            del self.status[get_sync_folder_path(object, self.config)][obj]
         
         created_on_b = remote_set - status_set - local_set
         log.debug("  -a-status+b - created on b")
-        '''
-         -> add it to a and status
-        '''
+        print("  -a-status+b - created on b")
+        for obj in created_on_b:
+            print(obj)
+            self.created_remote_file(obj)
         
-        # and -a-status-b, which means nothing to do
+        # ...and -a-status-b, which means nothing to do
 
         self.write_statusfile()
         self.read_statusfile()
@@ -205,6 +210,7 @@ class Status(object):
 
 
 #----------------------------- Recorded details Creators
+
     def create_status_record(self, object):
         sync_folder_path = get_sync_folder_path(object, self.config)
         real_remote_file = enc_homefolder(self.config, enc_path(object, self.config))
@@ -220,37 +226,65 @@ class Status(object):
 #----------------------------- Recorded details Updaters
 
     def update_status(self, object, *args):
+        sync_folder_path = get_sync_folder_path(object, self.config)
+        if object not in self.status[sync_folder_path]:
+            self.status[sync_folder_path][object] = {}
         state = ''
         for value in args:
             state += value
-        self.status[get_sync_folder_path(object, self.config)][object]['remote_file_timestamp'] = self.remote[get_sync_folder_path(object, self.config)][object]['remote_file_timestamp']
-        self.status[get_sync_folder_path(object, self.config)][object]['remote_file_checksum'] = self.remote[get_sync_folder_path(object, self.config)][object]['remote_file_checksum']
-        self.status[get_sync_folder_path(object, self.config)][object]['local_file_timestamp'] = self.local[get_sync_folder_path(object, self.config)][object]['local_file_timestamp']
-        self.status[get_sync_folder_path(object, self.config)][object]['local_file_checksum'] = self.local[get_sync_folder_path(object, self.config)][object]['local_file_checksum']
         if state != '':
-            self.status[get_sync_folder_path(object, self.config)][object]['state'] == state
+            self.status[sync_folder_path][object]['state'] = state
+        if state != 'deleted':
+            self.status[sync_folder_path][object]['remote_file_timestamp'] = self.remote[sync_folder_path][object]['remote_file_timestamp']
+            self.status[sync_folder_path][object]['remote_file_checksum'] = self.remote[sync_folder_path][object]['remote_file_checksum']
+            self.status[sync_folder_path][object]['local_file_timestamp'] = self.local[sync_folder_path][object]['local_file_timestamp']
+            self.status[sync_folder_path][object]['local_file_checksum'] = self.local[sync_folder_path][object]['local_file_checksum']
+        else:
+            # Error: setting state as deleted? this does not work fine with finding out the current state of all files (Deleted is found in status)
+            del self.status[sync_folder_path][object]
 
     def update_status_from_remote(self, object):
-        self.status[get_sync_folder_path(object, self.config)][object]['remote_file_timestamp'] = self.remote[get_sync_folder_path(object, self.config)][object]['remote_file_timestamp']
-        self.status[get_sync_folder_path(object, self.config)][object]['remote_file_checksum'] = self.remote[get_sync_folder_path(object, self.config)][object]['remote_file_checksum']
+        sync_folder_path = get_sync_folder_path(object, self.config)
+        self.status[sync_folder_path][object]['remote_file_timestamp'] = self.remote[sync_folder_path][object]['remote_file_timestamp']
+        self.status[sync_folder_path][object]['remote_file_checksum'] = self.remote[sync_folder_path][object]['remote_file_checksum']
 
     def update_status_from_local(self, object):
-        self.status[get_sync_folder_path(object, self.config)][object]['local_file_timestamp'] = self.local[get_sync_folder_path(object, self.config)][object]['local_file_timestamp']
-        self.status[get_sync_folder_path(object, self.config)][object]['local_file_checksum'] = self.local[get_sync_folder_path(object, self.config)][object]['local_file_checksum']
+        sync_folder_path = get_sync_folder_path(object, self.config)
+        self.status[sync_folder_path][object]['local_file_timestamp'] = self.local[sync_folder_path][object]['local_file_timestamp']
+        self.status[sync_folder_path][object]['local_file_checksum'] = self.local[sync_folder_path][object]['local_file_checksum']
 
     def update_remote_record(self, object):
+        sync_folder_path = get_sync_folder_path(object, self.config)
         #TODO: tool function to get real_remote_file
         real_remote_file = enc_homefolder(self.config, enc_path(object, self.config))
-        #real_remote_file = enc_homefolder(self.config, self.config.enc_mainfolder + "/" + object.replace('$HOME', '_HOME') + ".gpg")
-        self.remote[get_sync_folder_path(object, self.config)][object]['remote_file_timestamp'] = tstamp(real_remote_file)
-        self.remote[get_sync_folder_path(object, self.config)][object]['remote_file_checksum'] = hash(real_remote_file)
-        self.local[get_sync_folder_path(object, self.config)][object]['remote_file_checksum'] = self.remote[get_sync_folder_path(object, self.config)][object]['remote_file_timestamp']
+        if object not in self.remote[sync_folder_path]:
+            self.remote[sync_folder_path][object] = {}
+        self.remote[sync_folder_path][object]['remote_file_timestamp'] = tstamp(real_remote_file)
+        self.remote[sync_folder_path][object]['remote_file_checksum'] = hash(real_remote_file)
+        self.local[sync_folder_path][object]['remote_file_checksum'] = self.remote[sync_folder_path][object]['remote_file_timestamp']
 
     def update_local_record(self, object):
-        self.local[get_sync_folder_path(object, self.config)][object]['local_file_timestamp'] = tstamp(object)
-        self.local[get_sync_folder_path(object, self.config)][object]['local_file_checksum'] = hash(object)
+        sync_folder_path = get_sync_folder_path(object, self.config)
+        if object not in self.local[sync_folder_path]:
+            self.local[sync_folder_path][object] = {}
+        self.local[sync_folder_path][object]['local_file_timestamp'] = tstamp(object)
+        self.local[sync_folder_path][object]['local_file_checksum'] = hash(object)
 
+#----------------------------- Creation handlers
         
+    def created_local_file(self, obj):
+        managed_file = File(obj)
+        managed_file.encrypt(obj, self.config)
+        self.update_remote_record(obj)
+        self.update_status(obj, 'exists')
+
+
+    def created_remote_file(self, obj):
+        managed_file = File(obj)
+        managed_file.decrypt(obj, self.config)
+        self.update_local_record(obj)
+        self.update_status(obj, 'exists')
+
 #----------------------------- Deletion handlers
 
     def deleted_remote_file(self, obj):
@@ -260,6 +294,7 @@ class Status(object):
         local_age = current_local['local_file_timestamp']
         status_local_age = current_status['local_file_timestamp']
         status_remote_age = current_status['remote_file_timestamp']
+        print(local_age + " - " + status_local_age + " - " + status_remote_age)
         if local_age > status_remote_age:
             log.debug("local changed")
             managed_file = File(obj)
@@ -267,12 +302,36 @@ class Status(object):
             self.update_remote_record(obj)
             self.update_status(obj, 'exists')
         else:
-            os.remove(obj)
+            os.remove(getrealhome(obj))
             self.update_status(obj, 'deleted')
             
+    def deleted_local_file(self, obj):
+        current_remote = self.remote[get_sync_folder_path(obj, self.config)][obj]
+        current_status = self.status[get_sync_folder_path(obj, self.config)][obj]
+        
+        remote_age = current_remote['remote_file_timestamp']
+        status_local_age = current_status['local_file_timestamp']
+        status_remote_age = current_status['remote_file_timestamp']
+        if remote_age > status_local_age:
+            log.debug("remote changed")
+            managed_file = File(obj)
+            managed_file.decrypt(obj, self.config)
+            self.update_local_record(obj)
+            self.update_status(obj, 'exists')
+        else:
+            real_remote_file = enc_homefolder(self.config, enc_path(obj, self.config))
+            os.remove(real_remote_file)
+            self.update_status(obj, 'deleted')
+            
+        '''
+          - status deleted? -> delete it on b
+          - b newer than status_a and status_b? -> update status_b, recreate on a
+          - b newer than status_a? -> recreate on a
+          - b newer than status_b? -> update status_b, mark as deleted, delete from b
+          - status_b newer than b? -> mark as deleted, delete from b
+        '''
 
 ########################################
-
 
     def first_sync(self):
         pp = pprint.PrettyPrinter(indent=4)
