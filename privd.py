@@ -5,6 +5,7 @@
 # Save public, private keys on home directory
 # load, create and/or correct gpg keys
 # Add other modes encrypt, decrypt...? is this even needed?
+import timeit
 
 import argparse
 import gnupg
@@ -35,5 +36,5 @@ if __name__ == "__main__":
         print(str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
         log.debug(str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
         syncer.daemon()
-        time.sleep(30)
+        time.sleep(20)
   

@@ -77,17 +77,13 @@ class Status(object):
             yaml.dump(self.status, outfile, default_flow_style=False)
 
     def syncer(self):
-        '''
-        - status keeps tstamp and hash of local and remote
-          - must be kept updated at all times
-        '''
-        pp = pprint.PrettyPrinter(indent=4)
-        print("local")
-        pp.pprint(self.local)
-        print("remote")
-        pp.pprint(self.remote)
-        print("status")
-        pp.pprint(self.status)
+        #pp = pprint.PrettyPrinter(indent=4)
+        #print("local")
+        #pp.pprint(self.local)
+        #print("remote")
+        #pp.pprint(self.remote)
+        #print("status")
+        #pp.pprint(self.status)
 
         local_set = self.get_set(self.local)
         remote_set = self.get_set(self.remote)
@@ -95,10 +91,11 @@ class Status(object):
 
         everywhere = local_set.intersection(remote_set).intersection(status_set)
         log.debug("  +a+status+b - everywhere")
+        print("  +a+status+b - everywhere")
         for obj in everywhere:
+            print(obj)
             self.resolve_conflict(obj)
         
-        # does not work, tries to re-create
         deleted_on_b = local_set.intersection(status_set) - remote_set
         log.debug("  +a+status-b - deleted on b")
         print("  +a+status-b - deleted on b")
@@ -288,40 +285,17 @@ class Status(object):
 #----------------------------- Deletion handlers
 
     def deleted_remote_file(self, obj):
-        current_local = self.local[get_sync_folder_path(obj, self.config)][obj]
-        current_status = self.status[get_sync_folder_path(obj, self.config)][obj]
-        
-        local_age = current_local['local_file_timestamp']
-        status_local_age = current_status['local_file_timestamp']
-        status_remote_age = current_status['remote_file_timestamp']
-        print(local_age + " - " + status_local_age + " - " + status_remote_age)
-        if local_age > status_remote_age:
-            log.debug("local changed")
-            managed_file = File(obj)
-            managed_file.encrypt(obj, self.config)
-            self.update_remote_record(obj)
-            self.update_status(obj, 'exists')
-        else:
-            os.remove(getrealhome(obj))
-            self.update_status(obj, 'deleted')
+        # tried checking for changes on local too. 
+        # does not work, tries to re-create on local at second run
+        # reason: when it gets encrypted the timestamp is newer that that of local's
+        os.remove(getrealhome(obj))
+        self.update_status(obj, 'deleted')
             
     def deleted_local_file(self, obj):
-        current_remote = self.remote[get_sync_folder_path(obj, self.config)][obj]
-        current_status = self.status[get_sync_folder_path(obj, self.config)][obj]
-        
-        remote_age = current_remote['remote_file_timestamp']
-        status_local_age = current_status['local_file_timestamp']
-        status_remote_age = current_status['remote_file_timestamp']
-        if remote_age > status_local_age:
-            log.debug("remote changed")
-            managed_file = File(obj)
-            managed_file.decrypt(obj, self.config)
-            self.update_local_record(obj)
-            self.update_status(obj, 'exists')
-        else:
-            real_remote_file = enc_homefolder(self.config, enc_path(obj, self.config))
-            os.remove(real_remote_file)
-            self.update_status(obj, 'deleted')
+        # NOTE: check deleted_remote_file for reasons not to check it remove is newer
+        real_remote_file = enc_homefolder(self.config, enc_path(obj, self.config))
+        os.remove(real_remote_file)
+        self.update_status(obj, 'deleted')
             
         '''
           - status deleted? -> delete it on b
