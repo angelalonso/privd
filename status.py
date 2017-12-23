@@ -156,33 +156,38 @@ class Status(object):
         status_local_age = current_status['local_file_timestamp']
         status_remote_age = current_status['remote_file_timestamp']
         remote_age = current_remote['remote_file_timestamp']
+        print("------ RESOLVING CONFLICT -------")
+        print("local age " + str(local_age))
+        print("status local age " + str(status_local_age))
+        print("status remote age " + str(status_remote_age))
+        print("remote age " + str(remote_age))
         # changes local
         if local_age > status_local_age:
-            if local_age > remote_age:
-                log.debug("local changed")
+            if local_age > remote_age and not status_local_age == status_remote_age:
+                print("local changed")
                 managed_file = File(obj)
                 managed_file.encrypt(obj, self.config)
                 self.update_remote_record(obj)
-                self.update_status(obj, 'exists')
+                self.update_status_after_sync(obj, 'exists')
             else:
-                log.debug("local changed but remote was faster")
+                print("local changed but remote was faster")
                 self.update_status_from_local(obj)
                 # TODO: 
                 # check if remote has a better copy and bring it over even if we have changed locally
         elif remote_age > status_remote_age:
-            if remote_age > local_age:
-                log.debug("remote changed")
+            if remote_age > local_age and not status_remote_age == status_local_age:
+                print("remote changed")
                 managed_file = File(obj)
                 managed_file.decrypt(obj, self.config)
                 self.update_local_record(obj)
                 self.update_status(obj, 'exists')
             else:
-                log.debug("remote changed but local was faster")
+                print("remote changed but local was faster")
                 self.update_status_from_remote(obj)
                 # TODO: 
                 # check if local has a better copy and put it on remote even if we have changed locally
         else:
-            log.debug("local and remote have not changed in respect to status")
+            print("local and remote have not changed in respect to status")
             self.update_status(obj)
 
 
@@ -202,8 +207,9 @@ class Status(object):
             log.debug("remote changed")
             managed_file = File(obj)
             managed_file.decrypt(obj, self.config)
-            self.update_local_record(obj)
+            self.update_status(obj, 'exists')
         self.create_status_record(obj)
+        self.update_status_after_sync(obj, 'exists')
 
 
 #----------------------------- Recorded details Creators
@@ -240,6 +246,32 @@ class Status(object):
             # Error: setting state as deleted? this does not work fine with finding out the current state of all files (Deleted is found in status)
             del self.status[sync_folder_path][object]
 
+    def update_status_after_sync(self, object, *args):
+        # This is different from update_status in that,
+        #   to avoid misunderstandings later, 
+        #   we artificially set timestamps equal to local and remote
+        sync_folder_path = get_sync_folder_path(object, self.config)
+        if object not in self.status[sync_folder_path]:
+            self.status[sync_folder_path][object] = {}
+        state = ''
+        for value in args:
+            state += value
+        if state != '':
+            self.status[sync_folder_path][object]['state'] = state
+        if state != 'deleted':
+            remote_timestamp = self.remote[sync_folder_path][object]['remote_file_timestamp']
+            local_timestamp = self.local[sync_folder_path][object]['local_file_timestamp']
+            if remote_timestamp > local_timestamp: newest = remote_timestamp
+            else: newest = local_timestamp
+            self.status[sync_folder_path][object]['remote_file_timestamp'] = newest
+            self.status[sync_folder_path][object]['remote_file_checksum'] = self.remote[sync_folder_path][object]['remote_file_checksum']
+            self.status[sync_folder_path][object]['local_file_timestamp'] = newest
+            self.status[sync_folder_path][object]['local_file_checksum'] = self.local[sync_folder_path][object]['local_file_checksum']
+        else:
+            # Error: setting state as deleted? this does not work fine with finding out the current state of all files (Deleted is found in status)
+            del self.status[sync_folder_path][object]
+
+
     def update_status_from_remote(self, object):
         sync_folder_path = get_sync_folder_path(object, self.config)
         self.status[sync_folder_path][object]['remote_file_timestamp'] = self.remote[sync_folder_path][object]['remote_file_timestamp']
@@ -273,14 +305,14 @@ class Status(object):
         managed_file = File(obj)
         managed_file.encrypt(obj, self.config)
         self.update_remote_record(obj)
-        self.update_status(obj, 'exists')
+        self.update_status_after_sync(obj, 'exists')
 
 
     def created_remote_file(self, obj):
         managed_file = File(obj)
         managed_file.decrypt(obj, self.config)
         self.update_local_record(obj)
-        self.update_status(obj, 'exists')
+        self.update_status_after_sync(obj, 'exists')
 
 #----------------------------- Deletion handlers
 
@@ -297,16 +329,9 @@ class Status(object):
         os.remove(real_remote_file)
         self.update_status(obj, 'deleted')
             
-        '''
-          - status deleted? -> delete it on b
-          - b newer than status_a and status_b? -> update status_b, recreate on a
-          - b newer than status_a? -> recreate on a
-          - b newer than status_b? -> update status_b, mark as deleted, delete from b
-          - status_b newer than b? -> mark as deleted, delete from b
-        '''
 
 ########################################
-
+#
     def first_sync(self):
         pp = pprint.PrettyPrinter(indent=4)
         print("-- local --")

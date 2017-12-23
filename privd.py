@@ -1,5 +1,6 @@
 # TODO:
 # NEXTUP:
+# Check conflict resolution, step by step  
 # Remove unused functions
 # Create better different levels of logging messages (info, debug, error...)
 # Save public, private keys on home directory
