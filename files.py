@@ -40,7 +40,6 @@ class File(object):
 
 
     def decrypt(self, file_enc, config): 
-        #TODO NEXTUP: This does not decrypt correctly
         """ Decrypts file back to original path
         """
         real_file_enc_path = get_encrypted_file_path(file_enc, config)
@@ -50,7 +49,6 @@ class File(object):
         try:
             os.remove(self.path)
             log.debug("Had to remove previous " + self.path)
-            print("OK")
         except FileNotFoundError: pass
         cmd = 'gpg -d -o ' + self.path + ' ' + real_file_enc_path
         cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 

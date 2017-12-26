@@ -4,9 +4,6 @@ import yaml
 from tools import real2homeenv_path as getenvhome
 from tools import homeenv2real_path as getrealhome
 
-#TODO: Store paths with $HOME, use real path ONLY when accessing the files and folders themselves!
-# - change config to avoid this
-# - adapt as it goes
 
 class Config(object):
     """ A config object containing all values required
@@ -40,15 +37,6 @@ class Config(object):
             self.folders = []
             log.debug("Empty set of Folders to encryptedly sync")
         log.debug("Folders to encrypt: " + str(self.folders))
-        # TODO: remove these when the previous ones are ready:
-        try:
-            self.dec_folders = load['folders']
-            for folder in self.dec_folders:
-              folder['path'] = folder['path']
-        except KeyError as exc:
-            self.dec_folders = []
-            log.debug("Empty set of Folders to encrypt")
-        log.debug("Folders to encrypt: " + str(self.dec_folders))
 
         try:
             self.key_email = load['key_email']
