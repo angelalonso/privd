@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
 import glob
 import logging as log
 import os
@@ -104,31 +107,37 @@ class Status(object):
         everywhere = local_set.intersection(remote_set).intersection(status_set)
         log.debug("  +local+status+remote - files managed everywhere")
         for obj in everywhere:
+            log.debug(obj)
             self.resolve_conflict(obj)
         
         deleted_on_b = local_set.intersection(status_set) - remote_set
         log.debug("  +local+status-remote - deleted on remote")
         for obj in deleted_on_b:
+            log.debug(obj)
             self.deleted_remote_file(obj)
         
         missing_status = local_set.intersection(remote_set) - status_set
         log.debug("  +local-status+remote - status is missing")
         for obj in missing_status:
+            log.debug(obj)
             self.resolve_conflict_no_status(obj)
         
         created_on_a = local_set - status_set - remote_set
         log.debug("  +local-status-remote - created on local")
         for obj in created_on_a:
+            log.debug(obj)
             self.created_local_file(obj)
         
         deleted_on_a = remote_set.intersection(status_set) - local_set
         log.debug("  -local+status+remote - deleted on local")
         for obj in deleted_on_a:
+            log.debug(obj)
             self.deleted_local_file(obj)
         
         status_wrong = status_set - local_set - remote_set
         log.debug("  -local+status-remote - file does not actually exist, status is wrong")
         for obj in status_wrong:
+            log.debug(obj)
             # this does not work well with finding deleted files
             #self.update_status(obj, 'deleted')
             del self.status[get_sync_folder_path(object, self.config)][obj]
@@ -136,6 +145,7 @@ class Status(object):
         created_on_b = remote_set - status_set - local_set
         log.debug("  -local-status+remote - created on remote")
         for obj in created_on_b:
+            log.debug(obj)
             self.created_remote_file(obj)
 
         # ...and -a-status-b, which means nothing to do

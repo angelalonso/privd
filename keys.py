@@ -1,3 +1,6 @@
+#!/usr/bin/python3                                                                                                                                                                              
+# -*- coding: utf-8 -*-
+
 import gnupg
 import logging as log
 import subprocess
