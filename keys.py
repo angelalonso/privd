@@ -1,6 +1,7 @@
 import gnupg
 import logging as log
 import subprocess
+import os
 """
 Class to manage keys used for encryption and decryption
 

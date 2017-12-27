@@ -8,6 +8,6 @@ key_email: 'privd@privd.foo'
 statusfile: '.status'
 folders:
   - name: 'main'
-    path: '$HOME/.privd/source'
+    path: '$HOME/Private'
 #  - name: 'main_2'
 #    path: '$HOME/.privd/source2'

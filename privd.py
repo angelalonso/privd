@@ -11,8 +11,9 @@ import signal
 import argparse
 import gnupg
 import logging as log
-import time
+import os
 import subprocess
+import time
 from configs import Config
 from keys import Key as Key
 from status import Status
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     config = Config()
     key = Key(config.key_email)
     status = Status(config, key)
-    if not args['single']:
+    if args['single']:
         log.debug("New run at " + str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
         status.daemon()
     else:
@@ -41,6 +42,15 @@ if __name__ == "__main__":
             log.debug("New run at " + str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
             status.daemon()
 
+
+            # BACKUP ONLY WHILE I TEST
+            for folder in config.folders:
+                folder_path = folder['path']
+                backup_path = folder_path + ".backup"
+                if not os.path.exists(backup_path):
+                    os.makedirs(backup_path)
+                cmd = 'rsync -av ' + folder_path + '/ ' + backup_path
+                cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
             TIMEOUT = 5
             try:
                 for i in range(0, TIMEOUT):
