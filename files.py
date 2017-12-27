@@ -23,7 +23,6 @@ class File(object):
         # This overcomplication is only here so that I can use $HOME on Mac and Linux
         real_file_enc_path = getrealhome(get_encrypted_file_path(file, config))
         log.debug("encrypting " + real_file_enc_path)
-        print("encrypting " + real_file_enc_path)
         os.makedirs(os.path.dirname(real_file_enc_path), exist_ok=True)
         try:
             os.remove(real_file_enc_path)

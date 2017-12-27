@@ -4,13 +4,15 @@ Tool to syncronize and encrypt files on a folder into a cloud storage service's 
 It should be compatible with Linx and MacOs
 
 # Requirements
-Python3
+- Python3
+- gnupg, both as a package and as a python module
+- pyyaml
 
+apt-get update && apt-get install gnupg python3
 pip3 install gnupg pyyaml
 
 # Install
-
-Jusst clone this repo
+git clone https://github.com/angelalonso/privd
 
 # Before you launch
 
@@ -27,9 +29,7 @@ Rename config.yaml.template to config.yaml and modify the following to your liki
 
 # How to run it
 
-From the folder you cloned this repo run:
-
-python3 privd.py
+python3 <path where you cloned this repo>/privd.py
 
 # Known Issues
 
@@ -39,5 +39,4 @@ Just delete that statusfile
 # TODO List (in Prio order):
 
 - Automate config, have the script run with as little config as possible.
-- Make it possible to run using fll path to privd.py.
 - Make it possible to extract GPG key frm privd.py, document process to configure a second machine. 

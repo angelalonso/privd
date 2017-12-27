@@ -12,7 +12,7 @@ class Config(object):
 
     def __init__(self):
         log.debug("Config files initiated:")
-        with open("config.yaml", 'r') as stream:
+        with open(os.path.dirname(os.path.realpath(__file__)) + "/config.yaml", 'r') as stream:
             load = yaml.safe_load(stream)
 
         try:
