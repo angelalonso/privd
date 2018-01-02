@@ -1,0 +1,1 @@
+- When I sync on a new device, it finds all files as deleted on local
