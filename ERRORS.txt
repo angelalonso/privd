@@ -1,1 +1,3 @@
 - When I sync on a new device, it finds all files as deleted on local
+  - Solutions: Special copy over if it's empty -> ask user what to do, prio to default "it's my first time" mode
+  - Ask user ALWAYS after finding out a file has been deleted
