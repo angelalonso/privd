@@ -20,12 +20,12 @@ class File(object):
 
 
     def encrypt(self, file, config):
-        """ Encrypts the file to a given file
-            using gpg directly on bash
+        """ Encrypts the file to a given file using gpg directly on bash
         """
         # This overcomplication is only here so that I can use $HOME on Mac and Linux
         real_file_enc_path = getrealhome(get_encrypted_file_path(file, config))
-        log.debug("encrypting " + real_file_enc_path)
+        log.info("encrypting " + file)
+        log.debug("encrypting to " + real_file_enc_path)
         os.makedirs(os.path.dirname(real_file_enc_path), exist_ok=True)
         try:
             os.remove(real_file_enc_path)
@@ -46,7 +46,7 @@ class File(object):
         """
         real_file_enc_path = get_encrypted_file_path(file_enc, config)
         log.debug("decrypting from " + real_file_enc_path)
-        log.debug("decrypting to " + self.path)
+        log.info("decrypting to " + self.path)
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         try:
             os.remove(self.path)

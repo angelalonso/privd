@@ -34,6 +34,7 @@ def get_decrypted_file_path(enc_file, config):
     result = enc_file.replace('.gpg','').replace(config.enc_mainfolder + '/', '').replace('_HOME', '$HOME')
     return result
 
+
 def get_sync_folder_path(file, config):
     result = 'path'
     for folder in config.folders:
@@ -67,6 +68,7 @@ def checksum(file_in):
             break                                          
         else:                                              
             continue
+    #TODO: check that the file is indeed not meant to be an empty one
     #second, wait for it to have content
     for i in range(1000000):                                  
         enc_done = os.stat(realfile).st_size        
@@ -74,6 +76,7 @@ def checksum(file_in):
             break                                          
         else:                                              
             continue
+        log.info("file " + realfile + " is an empty one, is it needed?")
     try:                      
         with open(realfile, 'rb') as f:
             while True:       
@@ -89,11 +92,3 @@ def checksum(file_in):
         log.debug("File " + file_in + " is a directory")
         file_sha1 = ''
     return file_sha1
-
-#def get_newer(dict1, dict2, value):
-#    """Given two dicts, it returns the dict name which value is higher (meant for use with timestamps)
-#    """
-#    newer_value = max(dict1[value], dict2[value])
-#    if dict1[value] == newer_value: return dict1
-#    else: return dict2
-

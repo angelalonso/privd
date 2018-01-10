@@ -7,6 +7,8 @@ It should be compatible with Linx and MacOs
 - Python3
 - gnupg, both as a package and as a python module
 - pyyaml
+- rng-tools
+- sudo
 
 apt-get update && apt-get install gnupg python3
 pip3 install gnupg pyyaml

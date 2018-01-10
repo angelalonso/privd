@@ -1,8 +1,9 @@
-#!/usr/bin/python3
+#!/usr/bin/python3                                                                                                                                                                              
 # -*- coding: utf-8 -*-
 
-import os
 import logging as log
+import os
+import shutil
 import yaml
 from tools import real2homeenv_path as getenvhome
 from tools import homeenv2real_path as getrealhome
@@ -10,13 +11,16 @@ from tools import homeenv2real_path as getrealhome
 
 class Config(object):
     """ A config object containing all values required
-          It reads from a file and sets default values for the missing ones
+    It reads from a file and sets default values for the missing ones
     """
-
     def __init__(self):
         log.debug("Config files initiated:")
-        with open(os.path.dirname(os.path.realpath(__file__)) + "/config.yaml", 'r') as stream:
-            load = yaml.safe_load(stream)
+        try:
+            with open(os.path.dirname(os.path.realpath(__file__)) + "/config.yaml", 'r') as stream:
+                load = yaml.safe_load(stream)
+        except FileNotFoundError:
+            load = {}
+            load['mainfolder'] = "$HOME/Dropbox/.privd"
 
         try:
             self.mainfolder = load['mainfolder']
@@ -60,3 +64,17 @@ class Config(object):
             log.debug("Using default filename for status file")
         self.statusfile_path = (self.status_folder + "/" + self.statusfile)
         log.debug("Status file: " + self.statusfile_path)
+
+
+    def export_file(self, path):
+        """ Copies config.yaml to a given folder
+        """
+        log.debug("Exporting config file")
+        shutil.copyfile("config.yaml", path + "/config.yaml")
+
+
+    def import_file(self, path):
+        """ Copies config.yaml from a given folder
+        """
+        log.debug("Importing config file")
+        shutil.copyfile(path + "/config.yaml", "config.yaml")
