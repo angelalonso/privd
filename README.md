@@ -3,6 +3,12 @@ Tool to syncronize and encrypt files on a folder into a cloud storage service's 
 
 It should be compatible with Linx and MacOs
 
+# TL;DR
+
+cp config.yaml.template config.yaml
+
+python3 privd.py
+
 # Requirements
 - Python3
 - gnupg, both as a package and as a python module
@@ -10,7 +16,8 @@ It should be compatible with Linx and MacOs
 - rng-tools
 - sudo
 
-apt-get update && apt-get install gnupg python3
+## Install requirements On Ubuntu
+apt-get update && apt-get install gnupg python3 rng-tools sudo
 pip3 install gnupg pyyaml
 
 # Install
@@ -33,18 +40,29 @@ Rename config.yaml.template to config.yaml and modify the following to your liki
 
 python3 <path where you cloned this repo>/privd.py
 
+## Verbose mode
+
+python3 <path where you cloned this repo>/privd.py -v
+
 # How to configure a second machine
 
 After you have successfully run privd on one machine, you can copy over the GPG keys to have it run on a second one, which is actually the purpose of this whole thing.
 
 - In the 'old' machine:
-gpg --export -a <key_email> > privd.gpg.pub
-gpg --export-secret-key -a <key_email> > privd.gpg.priv
-- MOVE (don't just copy) those two files AND the config.yaml file on your privd's directory to a USB stick.
+python3 <path where you cloned this repo>/privd.py -e
+
+Choose a folder to export to. 
+
+HINT: this can also go into a mounted USB drive <wink>
+
 - Install privd on the 'new' machine too.
-- Plug that USB stick into the 'new' machine, copy config.yaml over to the privd's and run:
-gpg --import privd.gpg.pub
-gpg --import privd.gpg.priv
+Then, copy the folder to the new machine somehow.
+HINT: you can use the previously mentioned USB drive <wink, wink>
+
+python3 <path where you cloned this repo>/privd.py -i
+
+Indicate the folder to import to.
+
 
 # Known Issues
 
