@@ -117,10 +117,8 @@ if __name__ == "__main__":
             status.check_n_sync()
         # TODO: move this to where it can be needed: file conflicts. Start with informational dialogs on changes
         elif args['test']:
-            print("testing")
             Win = Window()
-            Win.confirmation("Please, confirm")
-            Win.show()
+            print(Win.show("true_false", "Choose an Action"))
         else:
             daemon = True
             if status.read_local() == 0 and status.read_remote() != 0:
