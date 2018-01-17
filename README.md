@@ -17,8 +17,10 @@ python3 privd.py
 - sudo
 
 ## Install requirements On Ubuntu
+add-apt-repository ppa:kivy-team/kivy
+apt-get update
 apt-get update && apt-get install gnupg python3 rng-tools sudo
-pip3 install gnupg pyyaml
+pip3 install gnupg pyyaml 
 
 # Install
 git clone https://github.com/angelalonso/privd

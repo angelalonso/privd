@@ -17,6 +17,7 @@ import time
 from configs import Config
 from keys import Key as Key
 from status import Status
+from window import MyWindow as Window
 
 
 def importer(key):
@@ -95,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--import', help='Import configuration before running the algorythm', required=False, action='store_true')
     parser.add_argument('-e', '--export', help='Export configuration for use on a different machine', required=False, action='store_true')
     parser.add_argument('-s', '--single', help='Run the sync algorythm once', required=False, action='store_true')
+    parser.add_argument('-t', '--test', help='Run the test', required=False, action='store_true')
 
     args = vars(parser.parse_args())
     if args['verbose']:
@@ -113,6 +115,12 @@ if __name__ == "__main__":
         elif args['single']:
             log.debug("Single run at " + str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
             status.check_n_sync()
+        # TODO: move this to where it can be needed: file conflicts. Start with informational dialogs on changes
+        elif args['test']:
+            print("testing")
+            Win = Window()
+            Win.confirmation("Please, confirm")
+            Win.show()
         else:
             daemon = True
             if status.read_local() == 0 and status.read_remote() != 0:
