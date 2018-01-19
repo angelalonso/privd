@@ -12,6 +12,7 @@ import argparse
 import gnupg
 import logging as log
 import os
+import sys
 import subprocess
 import time
 from configs import Config
@@ -118,7 +119,7 @@ if __name__ == "__main__":
         # TODO: move this to where it can be needed: file conflicts. Start with informational dialogs on changes
         elif args['test']:
             Win = Window()
-            print(Win.show("true_false", "Choose an Action"))
+            print(Win.show_win("true_false", "You know what happens with a Hello world"))
         else:
             daemon = True
             if status.read_local() == 0 and status.read_remote() != 0:

@@ -76,3 +76,4 @@ Just delete that statusfile
 - Document all functions properly
 - Automate config, have the script run with as little config as possible.
 - Create a tiny 'interactive' function to help configure a second machine. Maybe with an export and import parameter
+

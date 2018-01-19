@@ -1,43 +1,43 @@
-import sys
-import gi                                                                                                                                                                                             
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+import tkinter as tk
 
 class MyWindow():
     def __init__(self):
-        self.win = Gtk.Window()
-        self.win.connect("delete-event", Gtk.main_quit)
+        self.root = tk.Tk()
+        self.frame = tk.Frame(self.root)
+        self.frame.pack()
         self.result = ""
 
-    def confirmation(self, message):
-        self.button = Gtk.Button(label=message)
-        self.button.connect("clicked", self.on_button_clicked)
-        self.win.add(self.button)
-
-    def on_button_clicked(self, widget, message):
-        self.win.destroy()
-        Gtk.main_quit()
+    def on_button_clicked(self, message):
         self.result = message
+        self.root.destroy()
 
     def true_false(self, message):
-        width = len(message)*14
-        self.win.set_title(message)
-        self.win.set_default_size(width, 0)
-        self.grid_yes_no = Gtk.Grid()
-        self.button_yes = Gtk.Button(label="Yes")
-        self.button_yes.set_size_request(width/2, 0)
-        self.button_no = Gtk.Button(label="No")
-        self.button_no.set_size_request(width/2, 0)
-        self.button_yes.connect("clicked", self.on_button_clicked, "yes")
-        self.button_no.connect("clicked", self.on_button_clicked, "no")
-        self.grid_yes_no.attach(self.button_yes, 0, 0, 1, 1)
-        self.grid_yes_no.attach(self.button_no, 1, 0, 1, 1)
-        self.win.add(self.grid_yes_no)
+        msg_width = len(message) * 14
+        btn_width = 4
+        title = tk.Message(self.frame, 
+                text = message, 
+                pady = 15, 
+                padx = 15, 
+                width = msg_width)
+        title.pack(side = tk.TOP)
+        button = tk.Button(self.frame, 
+                 width = btn_width,
+                 text = "Yes", 
+                 command = lambda: self.on_button_clicked("yes"))
+        button.pack(side = tk.LEFT)
+        slogan = tk.Button(self.frame,
+                 width = btn_width,
+                 text = "No",
+                 fg = "red",
+                 command = lambda: self.on_button_clicked("no"))
+        slogan.pack(side = tk.RIGHT)
 
-    def show(self, mode, title):
-        self.result = ""
+    def show_win(self, mode, title):
         if mode == "true_false":
             result = self.true_false(title)
-        self.win.show_all()
-        Gtk.main()
+        self.root.mainloop()
         return self.result
+
+if __name__ == '__main__':
+    Win = MyWindow()                                                                                                                                                                            
+    print(Win.show_win("true_false", "Hello world"))
