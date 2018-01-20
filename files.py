@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import hashlib
+from gui import MyGUI as Gui
 import logging as log
 import os
 import subprocess
@@ -13,10 +14,11 @@ from tools import get_encrypted_file_path
 class File(object):
     """ A file object capable of being encrypted, decrypted and synced
     """
-    def __init__(self, path):
+    def __init__(self, path, gui):
         """ Returns a File whose path is path
         """
         self.path = getrealhome(path)
+        self.gui = gui
 
 
     def encrypt(self, file, config):
@@ -24,12 +26,12 @@ class File(object):
         """
         # This overcomplication is only here so that I can use $HOME on Mac and Linux
         real_file_enc_path = getrealhome(get_encrypted_file_path(file, config))
-        log.info("encrypting " + file)
-        log.debug("encrypting to " + real_file_enc_path)
+        self.gui.info("encrypting " + file)
+        self.gui.debug("encrypting to " + real_file_enc_path)
         os.makedirs(os.path.dirname(real_file_enc_path), exist_ok=True)
         try:
             os.remove(real_file_enc_path)
-            log.debug("Had to remove previous " + real_file_enc_path)
+            self.gui.debug("Had to remove previous " + real_file_enc_path)
         except FileNotFoundError: pass
         cmd = 'gpg -e -r ' + config.key.id + ' --trust-model always --output ' + real_file_enc_path + ' ' + self.path
         cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
@@ -45,12 +47,12 @@ class File(object):
         """ Decrypts file back to original path
         """
         real_file_enc_path = get_encrypted_file_path(file_enc, config)
-        log.debug("decrypting from " + real_file_enc_path)
-        log.info("decrypting to " + self.path)
+        self.gui.debug("decrypting from " + real_file_enc_path)
+        self.gui.info("decrypting to " + self.path)
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         try:
             os.remove(self.path)
-            log.debug("Had to remove previous " + self.path)
+            self.gui.debug("Had to remove previous " + self.path)
         except FileNotFoundError: pass
         cmd = 'gpg -d -o ' + self.path + ' ' + real_file_enc_path
         cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 

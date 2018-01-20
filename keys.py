@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import gnupg
+from gui import MyGUI as Gui
 import logging as log
 import subprocess
 import os
@@ -14,7 +15,7 @@ because the gnupg library does not seem to produce proper decryptable files for 
 class Key(object):
     """ The GPG keys we will use and reuse
     """
-    def __init__(self, key_email):
+    def __init__(self, key_email, gui):
         """ Returns a File whose path is path
         """
         self.id = key_email
@@ -23,12 +24,12 @@ class Key(object):
         checkcmd = 'gpg --list-keys ' + self.id + ' | grep pub'
         try:
             subprocess.check_output([checkcmd], shell=True)
-            log.debug('Key FOUND')
+            gui.debug('Key FOUND')
         except subprocess.CalledProcessError as e:
             #TODO: ask user for confirmation before we create it?
             #log.debug('Key NOT found. Generating...')
             self.create_key()
-            log.debug('Key NOT found.')
+            gui.debug('Key NOT found.')
 
 
     def create_key(self):

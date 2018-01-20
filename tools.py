@@ -3,6 +3,7 @@
 
 import hashlib
 import os
+from gui import MyGUI as Gui
 import logging as log
 
 
@@ -76,7 +77,7 @@ def checksum(file_in):
             break                                          
         else:                                              
             continue
-        log.info("file " + realfile + " is an empty one, is it needed?")
+        gui.info("file " + realfile + " is an empty one, is it needed?")
     try:                      
         with open(realfile, 'rb') as f:
             while True:       
@@ -86,9 +87,9 @@ def checksum(file_in):
                 sha1.update(data)
         file_sha1 = "{0}".format(sha1.hexdigest())
     except FileNotFoundError: 
-        log.debug("File " + file_in + " does not exist")
+        gui.debug("File " + file_in + " does not exist")
         file_sha1 = ''
     except IsADirectoryError:
-        log.debug("File " + file_in + " is a directory")
+        gui.debug("File " + file_in + " is a directory")
         file_sha1 = ''
     return file_sha1

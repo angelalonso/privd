@@ -22,7 +22,8 @@ from tools import timestamp as tstamp
 class Status(object):
     """ An object to control and manage files that will be synced
     """
-    def __init__(self, config, key):
+    def __init__(self, config, key, gui):
+        self.gui = gui
         self.config = config
         self.config.key = key
 
@@ -162,7 +163,7 @@ class Status(object):
         if local_age > status_local_age:
             if local_age > remote_age and not status_local_age == status_remote_age:
                 log.debug("Conflict:" + obj + " local version changed")
-                managed_file = File(obj)
+                managed_file = File(obj, self.gui)
                 managed_file.encrypt(obj, self.config)
                 self.update_remote_record(obj)
                 self.update_status_after_sync(obj, 'exists')
@@ -172,7 +173,7 @@ class Status(object):
         elif remote_age > status_remote_age:
             if remote_age > local_age and not status_remote_age == status_local_age:
                 log.debug("Conflict:" + obj + " remote version changed")
-                managed_file = File(obj)
+                managed_file = File(obj, self.gui)
                 managed_file.decrypt(obj, self.config)
                 self.update_local_record(obj)
                 self.update_status(obj, 'exists')
@@ -191,12 +192,12 @@ class Status(object):
         remote_age = current_remote['remote_file_timestamp']
         if local_age > remote_age:
             log.debug("Conflict:" + obj + " local version changed")
-            managed_file = File(obj)
+            managed_file = File(obj, self.gui)
             managed_file.encrypt(obj, self.config)
             self.update_remote_record(obj)
         elif remote_age > local_age:
             log.debug("Conflict:" + obj + " remote version changed")
-            managed_file = File(obj)
+            managed_file = File(obj, self.gui)
             managed_file.decrypt(obj, self.config)
             self.update_status(obj, 'exists')
         self.create_status_record(obj)
@@ -318,14 +319,14 @@ class Status(object):
 #----------------------------- Creation handlers
         
     def created_local_file(self, obj):
-        managed_file = File(obj)
+        managed_file = File(obj, self.gui)
         managed_file.encrypt(obj, self.config)
         self.update_remote_record(obj)
         self.update_status_after_sync(obj, 'exists')
 
 
     def created_remote_file(self, obj):
-        managed_file = File(obj)
+        managed_file = File(obj, self.gui)
         managed_file.decrypt(obj, self.config)
         self.update_local_record(obj)
         self.update_status_after_sync(obj, 'exists')
@@ -361,7 +362,7 @@ class Status(object):
                 print(obj)
                 print("########")
                 if os.path.isfile(obj):
-                    managed_file = File(obj)
+                    managed_file = File(obj, self.gui)
                     managed_file.decrypt(obj, self.config)
                
 
@@ -370,7 +371,7 @@ class Status(object):
             print(files)
             for name in files:
                 obj = dec_path(getenvhome(os.path.join(path, name)), self.config)
-                managed_file = File(obj)
+                managed_file = File(obj, self.gui)
                 managed_file.decrypt(obj, self.config)
 
 

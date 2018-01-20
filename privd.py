@@ -16,6 +16,7 @@ import sys
 import subprocess
 import time
 from configs import Config
+from gui import MyGUI as Gui
 from keys import Key as Key
 from status import Status
 from window import MyWindow as Window
@@ -24,8 +25,9 @@ from window import MyWindow as Window
 def importer(key):
     """ Imports GPG keys and config file from a folder
     """
+    # TODO: manage errors when files are not found
     import_folder = "importexport"
-    log.debug("Importing files from a different machine")
+    gui.debug("Importing files from a different machine")
     confirmed = False
     while not confirmed:
         print("Do you want to import from folder " + import_folder + "? ")
@@ -43,7 +45,7 @@ def exporter(key):
     """ Exports GPG keys and config file from a folder
     """
     export_folder = "importexport"
-    log.debug("Exporting files for use on a different machine")
+    gui.debug("Exporting files for use on a different machine")
     confirmed = False
     while not confirmed:
         print("Do you want to export to folder " + export_folder + "? ")
@@ -65,9 +67,9 @@ def backup_local(config):
     for folder in config.folders:
         folder_path = folder['path']
         backup_path = folder_path + ".backup"
-        log.debug("Backing up from " + folder_path + " to " + backup_path)
+        gui.debug("Backing up from " + folder_path + " to " + backup_path)
         if not os.path.exists(backup_path):
-            log.debug(backup_path + " does not exist, creating")
+            gui.debug(backup_path + " does not exist, creating")
             os.makedirs(backup_path)
         cmd = 'rsync -av ' + folder_path + '/ ' + backup_path
         cmd_run = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True) 
@@ -94,6 +96,7 @@ def empty_safety(daemon):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', help='Show higher level of verbosity', required=False, action='store_true')
+    parser.add_argument('-g', '--graphical', help='Interact using graphical interfaces instead of console', required=False, action='store_true')
     parser.add_argument('-i', '--import', help='Import configuration before running the algorythm', required=False, action='store_true')
     parser.add_argument('-e', '--export', help='Export configuration for use on a different machine', required=False, action='store_true')
     parser.add_argument('-s', '--single', help='Run the sync algorythm once', required=False, action='store_true')
@@ -102,30 +105,37 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
     if args['verbose']:
         log.basicConfig(format="%(levelname)s: %(asctime)s %(message)s", level=log.DEBUG)
+        loglevel = "debug"
     else:
         log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
+        loglevel = "info"
 
     config = Config()
-    key = Key(config.key_email)
-    status = Status(config, key)
+    #config.loglevel = loglevel
+    gui = Gui(args['graphical'], loglevel)
+    key = Key(config.key_email, gui)
+    status = Status(config, key, gui)
+
+
     if args['import']:
         importer(key)
     else:
         if args['export']:
             exporter(key)
         elif args['single']:
-            log.debug("Single run at " + str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
+            gui.debug("Single run at " + str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
             status.check_n_sync()
         # TODO: move this to where it can be needed: file conflicts. Start with informational dialogs on changes
         elif args['test']:
             Win = Window()
-            print(Win.show_win("true_false", "You know what happens with a Hello world"))
+            #print(Win.show_win("true_false", "You know what happens with a Hello world"))
+            print(Win.show_win("choices_2", "ATTENTION! \n There is a conflict \n Wha do you want to do?", choice1 = "Keep local", choice2 = "Keep remote"))
         else:
             daemon = True
             if status.read_local() == 0 and status.read_remote() != 0:
                 daemon = empty_safety(daemon)
             while daemon == True:
-                log.debug("New run at " + str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
+                gui.debug("New run at " + str(int(time.time())) + " - " + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) )
                 status.check_n_sync()
                 # BACKUP ONLY WHILE I TEST
                 backup_local(config)
