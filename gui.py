@@ -14,8 +14,7 @@ class MyGUI():
         if self.gui:
             Win = Window()
             Win.show_win("notification", "INFO: " + message)
-        else:
-            log.info(message)
+        log.info(message)
 
     def debug(self, message):
         #not using windows, no one wants debug windows!

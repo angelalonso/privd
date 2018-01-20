@@ -100,6 +100,12 @@ class MyWindow():
         # didnt work
         #self.root.wm_attributes("-topmost", 1)
         #self.root.focus_force()
+        # didnt work
+        #self.root.overrideredirect(False)
+        #self.root.iconify()
+        #self.root.update()
+        #self.root.deiconify()
+        #self.root.overrideredirect(True)
         self.root.mainloop()
         return self.result
 
