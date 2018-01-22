@@ -110,11 +110,10 @@ if __name__ == "__main__":
         log.basicConfig(format="%(levelname)s: %(message)s", level=log.INFO)
         loglevel = "info"
 
-    config = Config()
-    #config.loglevel = loglevel
+    config = Config(args['graphical'], loglevel)
     gui = Gui(args['graphical'], loglevel)
     key = Key(config.key_email, gui)
-    status = Status(config, key, gui)
+    status = Status(config, key)
 
 
     if args['import']:

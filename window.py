@@ -3,6 +3,7 @@
 
 from time import sleep
 import tkinter as tk
+import threading
 
 class MyWindow():
     def __init__(self):
