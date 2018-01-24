@@ -1,11 +1,27 @@
 #!/usr/bin/python3                                                                                                                                                                              
 # -*- coding: utf-8 -*-
 
-import gnupg
+                              
+#  ====  Automated Import and pip-installation of requirements  ====  #
+import subprocess             
+                              
+def pipinstall(package):      
+    subprocess.call(['pip3', 'install', '--user', package])                                                                                                                                           
+   
+try: import logging as log    
+except ImportError:           
+    pipinstall('logging')     
+    import logging as log     
+                              
+try: import os                
+except ImportError:           
+    pipinstall('os')          
+    import os                 
+         
+
 from gui import MyGUI as Gui
-import logging as log
-import subprocess
-import os
+
+
 """ Class to manage keys used for encryption and decryption
 I'm using bash directly, 
 because the gnupg library does not seem to produce proper decryptable files for binary files

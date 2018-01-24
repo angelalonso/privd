@@ -6,15 +6,33 @@
 # Remove unused functions
 # Create better different levels of logging messages (info, debug, error...)
 
-import timeit
-import signal
-import argparse
-import gnupg
-import logging as log
-import os
-import sys
+#  ====  Automated Import and pip-installation of requirements  ====  #
 import subprocess
-import time
+
+def pipinstall(package):
+    subprocess.call(['pip3', 'install', '--user', package])
+
+try: import argparse
+except ImportError: 
+    pipinstall('argparse') 
+    import argparse
+
+try: import logging as log
+except ImportError: 
+    pipinstall('logging') 
+    import logging as log
+
+try: import os
+except ImportError: 
+    pipinstall('os') 
+    import os
+
+try: import time
+except ImportError: 
+    pipinstall('time') 
+    import time
+
+
 from configs import Config
 from gui import MyGUI as Gui
 from keys import Key as Key

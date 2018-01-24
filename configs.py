@@ -1,11 +1,30 @@
 #!/usr/bin/python3                                                                                                                                                                              
 # -*- coding: utf-8 -*-
 
+#  ====  Automated Import and pip-installation of requirements  ====  #
+import subprocess   
+               
+def pipinstall(package):
+    subprocess.call(['pip', 'install', '--user', package])
+             
+
+try: import os
+except ImportError: 
+    pipinstall('os')      
+    import os
+
+try: import shutil
+except ImportError: 
+    pipinstall('shutil')      
+    import shutil
+
+try: import yaml
+except ImportError: 
+    pipinstall('pyyaml')      
+    import yaml
+
+
 from gui import MyGUI as Gui
-import logging as log
-import os
-import shutil
-import yaml
 from tools import real2homeenv_path as getenvhome
 from tools import homeenv2real_path as getrealhome
 

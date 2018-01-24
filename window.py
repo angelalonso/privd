@@ -1,9 +1,27 @@
 #!/usr/bin/python3                                                                                                                                                                              
 # -*- coding: utf-8 -*-
+                              
+#  ====  Automated Import and pip-installation of requirements  ====  #
+import subprocess             
+                              
+def pipinstall(package):      
+    subprocess.call(['pip3', 'install', '--user', package])                                                                                                                                           
+                              
+try: from time import sleep
+except ImportError:           
+    pipinstall('time')    
+    from time import sleep
 
-from time import sleep
-import tkinter as tk
-import threading
+try: import tkinter as tk
+except ImportError:           
+    pipinstall('tkinter')    
+    import tkinter as tk
+
+try: import threading
+except ImportError:           
+    pipinstall('threading')    
+    import threading
+
 
 class MyWindow():
     def __init__(self):
