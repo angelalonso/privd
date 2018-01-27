@@ -1,21 +1,9 @@
 #!/usr/bin/python3                                                                                                                                                                              
 # -*- coding: utf-8 -*-
                              
-#  ====  Automated Import and pip-installation of requirements  ====  #
-import subprocess             
                               
-def pipinstall(package):      
-    subprocess.call(['pip3', 'install', '--user', package])                                                                                                                                           
-                              
-try: import hashlib
-except ImportError:           
-    pipinstall('hashlib')    
-    import hashlib
-          
-try: import os                
-except ImportError:           
-    pipinstall('os')          
-    import os                 
+import hashlib
+import os                
 
 
 from gui import MyGUI as Gui

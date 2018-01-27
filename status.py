@@ -2,32 +2,10 @@
 
 # -*- coding: utf-8 -*-
 
-#  ====  Automated Import and pip-installation of requirements  ====  #
-import subprocess             
-                              
-def pipinstall(package):      
-    subprocess.call(['pip3', 'install', '--user', package])                                                                                                                                           
-                 
-
-try: import glob
-except ImportError:           
-    pipinstall('glob')     
-    import glob
-                   
-try: import logging as log    
-except ImportError:           
-    pipinstall('logging')     
-    import logging as log     
-                   
-try: import os                
-except ImportError:           
-    pipinstall('os')          
-    import os                 
-              
-try: import yaml
-except ImportError:           
-    pipinstall('pyyaml')     
-    import yaml
+import glob
+import logging as log    
+import os                
+import yaml
 
 
 from files import File as File

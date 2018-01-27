@@ -1,16 +1,7 @@
 #!/usr/bin/python3                                                                                                                                                                              
 # -*- coding: utf-8 -*-
 
-#  ====  Automated Import and pip-installation of requirements  ====  #
-import subprocess             
-                              
-def pipinstall(package):      
-    subprocess.call(['pip3', 'install', '--user', package])                                                                                                                                           
-               
-try: import logging as log    
-except ImportError:           
-    pipinstall('logging')     
-    import logging as log     
+import logging as log    
                
 
 from window import MyWindow as Window

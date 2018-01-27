@@ -3,36 +3,19 @@
 
 # TODO:
 # NEXTUP:
+# ask user for input on decissions, using gui and/or cli
 # Remove unused functions
 # Create better different levels of logging messages (info, debug, error...)
 
-#  ====  Automated Import and pip-installation of requirements  ====  #
 import subprocess
-
-def pipinstall(package):
-    subprocess.call(['pip3', 'install', '--user', package])
-
-try: import argparse
-except ImportError: 
-    pipinstall('argparse') 
-    import argparse
-
-try: import logging as log
-except ImportError: 
-    pipinstall('logging') 
-    import logging as log
-
-try: import os
-except ImportError: 
-    pipinstall('os') 
-    import os
-
-try: import time
-except ImportError: 
-    pipinstall('time') 
-    import time
+import argparse
+import logging as log
+import os
+import time
 
 
+from tools import homeenv2real_path as getrealhome
+from tools import homeenv2real_path as home2real
 from configs import Config
 from gui import MyGUI as Gui
 from keys import Key as Key
@@ -83,7 +66,7 @@ def backup_local(config):
     """ Creates a local backup of the local folder
     """
     for folder in config.folders:
-        folder_path = folder['path']
+        folder_path = getrealhome(folder['path'])
         backup_path = folder_path + ".backup"
         gui.debug("Backing up from " + folder_path + " to " + backup_path)
         if not os.path.exists(backup_path):
