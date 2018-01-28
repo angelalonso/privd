@@ -3,9 +3,8 @@
 
 # TODO:
 # NEXTUP:
+# log file changes to debug issues
 # ask user for input on decissions, using gui and/or cli
-# Remove unused functions
-# Create better different levels of logging messages (info, debug, error...)
 
 import subprocess
 import argparse

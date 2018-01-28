@@ -67,10 +67,10 @@ Just delete that statusfile
 
 # TODO List (in Prio order):
 
-- Document all functions properly
+- Logfile stored in remote, to help troubleshoot uncatched errors
+- GUI interaction for conflicts
 - Automate config, have the script run with as little config as possible.
 - Create a tiny 'interactive' function to help configure a second machine. Maybe with an export and import parameter
-- GUI interaction for conflicts
 
 ## License
 

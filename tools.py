@@ -25,20 +25,29 @@ def homeenv2real_path(path):
     return new_path
 
 def enc_homefolder(config, path):
+    """ returns path parameter with the real HOME folder path 
+    """
     real_enc_mainfolder =  config.enc_mainfolder.replace('$HOME', os.environ['HOME'])
     new_path = path.replace(config.enc_mainfolder, real_enc_mainfolder)
     return new_path
 
 def get_encrypted_file_path(file, config):
+    """ returns the path to the encrypted copy of the file
+    """
     filepath = file.replace('$HOME', '/_HOME')
     return config.enc_mainfolder + filepath + '.gpg'
 
 def get_decrypted_file_path(enc_file, config):
+    """ returns the path to the decrypted copy of the file
+    """
     result = enc_file.replace('.gpg','').replace(config.enc_mainfolder + '/', '').replace('_HOME', '$HOME')
     return result
 
 
 def get_sync_folder_path(file, config):
+    """ returns the folder our file is on,
+        from the configured folders we have
+    """
     result = 'path'
     for folder in config.folders:
         if folder['path'] + '/' in file:
@@ -48,6 +57,8 @@ def get_sync_folder_path(file, config):
 
 
 def timestamp(file):
+    """ gets the timestamp of a given file
+    """
     realfile = homeenv2real_path(file)
     if os.path.isfile(realfile):
         return format(os.stat(realfile).st_mtime)

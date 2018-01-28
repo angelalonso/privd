@@ -6,6 +6,8 @@ import tkinter as tk
 
 
 class MyWindow():
+    """ Class to manage tkinter Window
+    """
     def __init__(self):
         self.root = tk.Tk()
         self.frame = tk.Frame(self.root)
@@ -13,14 +15,21 @@ class MyWindow():
         self.result = ""
 
     def on_button_clicked(self, message):
+        """ Catching a mouse click 
+        """
         self.result = message
         self.root.destroy()
 
     def on_enter_pressed(self, event):
+        """ Catching keyboard Enter
+            Not yet implemented
+        """
         pass
 
 
     def notification(self, message):
+        """ Widget to show a notification that disappears after timeout (ms)
+        """
         timeout = 4000
         msg_width = len(message) * 14
         btn_width = 4
@@ -39,6 +48,8 @@ class MyWindow():
         self.root.after(timeout, lambda: self.root.destroy()) 
 
     def true_false(self, message):
+        """ Widget to choose between true or false
+        """
         msg_width = len(message) * 14
         btn_width = 4
         title = tk.Message(self.frame, 
@@ -60,6 +71,8 @@ class MyWindow():
         btn_no.pack(side = tk.RIGHT)
 
     def choices_2(self, message, choice1, choice2):
+        """ Widget to choose from two alternatives
+        """
         msg_width = len(message) * 14
         title = tk.Message(self.frame, 
                 text = message, 
@@ -76,7 +89,9 @@ class MyWindow():
                  command = lambda: self.on_button_clicked(choice2))
         btn_choice2.pack(side = tk.RIGHT)
 
-    def prepare_widget(self):
+    def prepare_win(self):
+        """ Configures the window before we show it
+        """
         self.root.overrideredirect(1)
         self.root.update_idletasks()
         w = self.root.winfo_width() 
@@ -89,6 +104,8 @@ class MyWindow():
         self.root.update()
 
     def show_win(self, mode, title, **kwargs):
+        """ Calls the different configurations and shows the window we have been getting ready
+        """
         if mode == "true_false":
             result = self.true_false(title)
         elif mode == "notification":
@@ -97,16 +114,7 @@ class MyWindow():
             choice1 = kwargs.pop('choice1')
             choice2 = kwargs.pop('choice2')
             result = self.choices_2(title, choice1, choice2)
-        self.prepare_widget()
-        # didnt work
-        #self.root.wm_attributes("-topmost", 1)
-        #self.root.focus_force()
-        # didnt work
-        #self.root.overrideredirect(False)
-        #self.root.iconify()
-        #self.root.update()
-        #self.root.deiconify()
-        #self.root.overrideredirect(True)
+        self.prepare_win()
         self.root.mainloop()
         return self.result
 
