@@ -8,6 +8,22 @@ import os
 
 from gui import MyGUI as Gui
 
+def journal(journalfile, message):
+    """ adds an entry to our 'journal' file
+    """
+    # TODO:
+    # no need to receive full path with real HOME whatever
+    # move somewhere else, status maybe?
+    # add timestamp and new line
+    # second parameter should be filename
+    # third parameter should be what happened
+
+    if not os.path.isfile(journalfile):
+        with open(journalfile, 'a'):
+            os.utime(journalfile, None)
+    with open(journalfile, "a") as myfile:
+        myfile.write(message)
+
 
 def real2homeenv_path(path):
     """ replaces /home/user OR /Users/user with $HOME

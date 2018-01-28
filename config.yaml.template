@@ -6,6 +6,7 @@ key_email: 'privd@privd.foo'
 # uncomment this to change default (main_folder)
 # status_folder: '$HOME/Dropbox/.privd'
 statusfile: '.status'
+journalfile: '.journal.log'
 folders:
   - name: 'main'
     path: '$HOME/Private'

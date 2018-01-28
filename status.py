@@ -17,6 +17,7 @@ from tools import get_decrypted_file_path as dec_path
 from tools import get_sync_folder_path
 from tools import checksum
 from tools import timestamp as tstamp
+from tools import journal as journal
 
 
 class Status(object):
@@ -363,6 +364,7 @@ class Status(object):
         managed_file.encrypt(obj, self.config)
         self.update_remote_record(obj)
         self.update_status_after_sync(obj, 'exists')
+        journal(getrealhome(self.config.journalfile_path), obj)
 
 
     def created_remote_file(self, obj):

@@ -60,6 +60,7 @@ class Config(object):
         except KeyError as exc:
             self.status_folder = self.mainfolder
             self.gui.debug("Using default folder for the status file")
+
         try:
             self.statusfile = load['statusfile']
         except KeyError as exc:
@@ -67,6 +68,14 @@ class Config(object):
             self.gui.debug("Using default filename for status file")
         self.statusfile_path = (self.status_folder + "/" + self.statusfile)
         self.gui.debug("Status file: " + self.statusfile_path)
+
+        try:
+            self.journalfile = load['journalfile']
+        except KeyError as exc:
+            self.journalfile = ".journal"
+            self.gui.debug("Using default filename for journal file")
+        self.journalfile_path = (self.status_folder + "/" + self.journalfile)
+        self.gui.debug("Journal file: " + self.journalfile_path)
 
 
     def export_file(self, path):
