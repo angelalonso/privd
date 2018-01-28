@@ -1,31 +1,28 @@
 # privd
-Tool to syncronize and encrypt files on a folder into a cloud storage service's folder (eg.: Dropbox)
+Tool to syncronize and encrypt files on a folder into another folder. Compatible with Linx and MacOs.
 
-It should be compatible with Linx and MacOs
-
-# TL;DR
-
+## Getting started
+``` 
 cp config.yaml.template config.yaml
-
+pip3 install -r requirements.txt
 python3 privd.py
+``` 
 
-# Requirements
+## Requirements
+
 - Python3
-- gnupg, both as a package and as a python module
+- gnupg, as a package
 - pyyaml
 - rng-tools
 - sudo
 
-## Install requirements On Ubuntu
-add-apt-repository ppa:kivy-team/kivy
-apt-get update
+### Install requirements On Ubuntu
+``` 
 apt-get update && apt-get install gnupg python3 rng-tools sudo
 pip3 install gnupg pyyaml 
+``` 
 
-# Install
-git clone https://github.com/angelalonso/privd
-
-# Before you launch
+## Configuration
 
 Rename config.yaml.template to config.yaml and modify the following to your liking:
 - mainfolder
@@ -38,15 +35,12 @@ Rename config.yaml.template to config.yaml and modify the following to your liki
   - Set a full path on "path", or use $HOME. No other environment variables work for now.
   - Name is irrelevant
 
-# How to run it
-
-python3 <path where you cloned this repo>/privd.py
-
 ## Verbose mode
 
 python3 <path where you cloned this repo>/privd.py -v
 
-# How to configure a second machine
+## How to configure a second machine
+When using privd.py to encrypt on a shared folder, you'l need to configure a second or third machine to decrypt the contents.
 
 After you have successfully run privd on one machine, you can copy over the GPG keys to have it run on a second one, which is actually the purpose of this whole thing.
 
@@ -76,4 +70,5 @@ Just delete that statusfile
 - Document all functions properly
 - Automate config, have the script run with as little config as possible.
 - Create a tiny 'interactive' function to help configure a second machine. Maybe with an export and import parameter
+- GUI interaction for conflicts
 
