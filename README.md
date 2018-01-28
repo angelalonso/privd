@@ -72,3 +72,8 @@ Just delete that statusfile
 - Create a tiny 'interactive' function to help configure a second machine. Maybe with an export and import parameter
 - GUI interaction for conflicts
 
+## License
+
+[![CC0](https://licensebuttons.net/p/zero/1.0/88x31.png)](https://creativecommons.org/publicdomain/zero/1.0/)
+
+To the extent possible under law, [Angel Alonso Fonseca](http://fonseca.de.com) has waived all copyright and related or neighboring rights to this work.
