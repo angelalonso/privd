@@ -4,6 +4,7 @@
 import os
 import shutil
 import yaml
+import socket
 
 
 from gui import MyGUI as Gui
@@ -31,6 +32,13 @@ class Config(object):
             self.mainfolder = os.environ['HOME'] + "/.privd"
             self.gui.debug("Using default Main folder")
         self.gui.debug("Main folder: " + self.mainfolder)
+
+        try:
+            self.machinename = load['machinename']
+        except KeyError as exc:
+            self.machinename = socket.gethostname()
+            self.gui.debug("Using default Machine Name")
+        self.gui.debug("Machine Name: " + self.machinename)
 
         try:
             self.enc_mainfolder = load['enc_mainfolder']

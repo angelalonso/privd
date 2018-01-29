@@ -2,6 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
+import datetime
 import glob
 import logging as log    
 import os                
@@ -17,7 +18,6 @@ from tools import get_decrypted_file_path as dec_path
 from tools import get_sync_folder_path
 from tools import checksum
 from tools import timestamp as tstamp
-from tools import journal as journal
 
 
 class Status(object):
@@ -109,6 +109,23 @@ class Status(object):
         with open(getrealhome(self.config.statusfile_path), 'w') as outfile:
             yaml.dump(self.status, outfile, default_flow_style=False)
 
+    
+    def journal(self, filename, change):
+        """ adds an entry to our 'journal' file
+        """
+        # TODO:
+        journalfile = getrealhome(self.config.journalfile_path)
+
+        if not os.path.isfile(journalfile):
+            with open(journalfile, 'a'):
+                os.utime(journalfile, None)
+        with open(journalfile, "a") as myfile:
+            myfile.write(str(datetime.datetime.now()) + "|-|" \
+                    + filename + "|-|" \
+                    + change + "|-|" \
+                    + self.config.machinename + "\n")
+
+
 
     def executer(self):
         """ Groups the files according to their status and calls the subsequent functions to take action
@@ -180,6 +197,7 @@ class Status(object):
         if local_age > status_local_age:
             if local_age > remote_age and not status_local_age == status_remote_age:
                 log.debug("Conflict:" + obj + " local version changed")
+                self.journal(obj, "changed locally")
                 managed_file = File(obj, self.config.gui)
                 managed_file.encrypt(obj, self.config)
                 self.update_remote_record(obj)
@@ -190,6 +208,7 @@ class Status(object):
         elif remote_age > status_remote_age:
             if remote_age > local_age and not status_remote_age == status_local_age:
                 log.debug("Conflict:" + obj + " remote version changed")
+                self.journal(obj, "changed remotely")
                 managed_file = File(obj, self.config.gui)
                 managed_file.decrypt(obj, self.config)
                 self.update_local_record(obj)
@@ -212,11 +231,13 @@ class Status(object):
         remote_age = current_remote['remote_file_timestamp']
         if local_age > remote_age:
             log.debug("Conflict:" + obj + " local version changed")
+            self.journal(obj, "changed locally")
             managed_file = File(obj, self.config.gui)
             managed_file.encrypt(obj, self.config)
             self.update_remote_record(obj)
         elif remote_age > local_age:
             log.debug("Conflict:" + obj + " remote version changed")
+            self.journal(obj, "changed remotely")
             managed_file = File(obj, self.config.gui)
             managed_file.decrypt(obj, self.config)
             self.update_status(obj, 'exists')
@@ -364,7 +385,7 @@ class Status(object):
         managed_file.encrypt(obj, self.config)
         self.update_remote_record(obj)
         self.update_status_after_sync(obj, 'exists')
-        journal(getrealhome(self.config.journalfile_path), obj)
+        self.journal(obj, "created locally")
 
 
     def created_remote_file(self, obj):
@@ -374,6 +395,7 @@ class Status(object):
         managed_file.decrypt(obj, self.config)
         self.update_local_record(obj)
         self.update_status_after_sync(obj, 'exists')
+        self.journal(obj, "created remotely")
 
 #----------------------------- Deletion handlers
 
@@ -384,6 +406,7 @@ class Status(object):
         self.config.gui.info("removing " + real_remote_file)
         os.remove(real_remote_file)
         self.update_status(obj, 'deleted')
+        self.journal(obj, "deleted locally")
 
 
     def deleted_remote_file(self, obj):
@@ -392,6 +415,7 @@ class Status(object):
         self.config.gui.info("removing " + getrealhome(obj))
         os.remove(getrealhome(obj))
         self.update_status(obj, 'deleted')
+        self.journal(obj, "deleted remotely")
         
 #----------------------------- Other functions
 

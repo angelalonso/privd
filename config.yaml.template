@@ -1,5 +1,5 @@
 ---
-# TODO: clean up with what's not needed
+machinename: 'main'
 mainfolder: '$HOME/Dropbox/.privd'
 enc_mainfolder: '$HOME/Dropbox/.privd/enc'
 key_email: 'privd@privd.foo'
