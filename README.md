@@ -12,13 +12,14 @@ python3 privd.py
 
 - Python3
 - gnupg, as a package
+- python3-tk, as a package
 - pyyaml
 - rng-tools
 - sudo
 
 ### Install requirements On Ubuntu
 ``` 
-apt-get update && apt-get install gnupg python3 rng-tools sudo
+apt-get update && apt-get install gnupg python3 python3-tk rng-tools sudo
 pip3 install gnupg pyyaml 
 ``` 
 
