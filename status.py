@@ -182,8 +182,18 @@ class Status(object):
 
 # ----------------------------- Conflict resolvers
 
+    def resolve_conflict_user(self, obj):
+        """ Function to ask user to decide on action to take
+            when a file is on both, the local and remote folders
+        """
+        #TODO: need to show as much info (what was modified, when, by whom if possible...)
+        #      as possible, for the user to decide properly
+        # Probably we need a new window object with different sizes for different infos
+        pass
+
+
     def resolve_conflict(self, obj):
-        """ Algorythm to decide action when a file is on both, the local and remote foldersa,
+        """ Algorythm to decide action when a file is on both, the local and remote folders,
             based on what the statusfile says
         """
         current_local = self.local[get_sync_folder_path(obj, self.config)][obj]
