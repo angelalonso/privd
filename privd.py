@@ -3,7 +3,6 @@
 
 # TODO:
 # NEXTUP:
-# log file changes to debug issues
 # ask user for input on decissions, using gui and/or cli
 
 import subprocess
