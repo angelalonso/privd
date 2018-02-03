@@ -4,7 +4,6 @@
 import logging as log    
                
 
-from window import MyWindow as Window
 
 
 class MyGUI():
@@ -13,7 +12,9 @@ class MyGUI():
     """
     def __init__(self, guimode, loglevel):
         self.loglevel = loglevel
-        if guimode: self.gui = True
+        if guimode: 
+            self.gui = True
+            from window import MyWindow as Window
         else: self.gui = False
 
     def info(self, message):

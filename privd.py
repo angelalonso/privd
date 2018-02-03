@@ -127,7 +127,13 @@ if __name__ == "__main__":
         elif args['test']:
             Win = Window()
             #print(Win.show_win("true_false", "You know what happens with a Hello world"))
-            print(Win.show_win("choices_2", "ATTENTION! \n There is a conflict \n Wha do you want to do?", choice1 = "Keep local", choice2 = "Keep remote"))
+            file_local = {}
+            file_remote = {}
+            file_local['name'] = '$HOME/Private/testfile'
+            file_local['timestamp'] = '1517642665.7443795'
+            file_remote['name'] = '$HOME/Private/testfile'
+            file_remote['timestamp'] = '1517642675.040509'
+            print(Win.show_win("choices_files", title="HEYYYY", file1=file_local, file2=file_remote))
         else:
             daemon = True
             if status.read_local() == 0 and status.read_remote() != 0:

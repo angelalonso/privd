@@ -70,6 +70,26 @@ class MyWindow():
                  command = lambda: self.on_button_clicked("no"))
         btn_no.pack(side = tk.RIGHT)
 
+    def choices_files(self, file1, file2):
+        """ Widget to choose which file to keep
+        """
+        message = "What do you want to do?"
+        msg_width = len(message) * 14
+        title = tk.Message(self.frame, 
+                text = message, 
+                pady = 15, 
+                padx = 15, 
+                width = msg_width)
+        title.pack(side = tk.TOP)
+        btn_choice1 = tk.Button(self.frame, 
+                 text = file1, 
+                 command = lambda: self.on_button_clicked(choice1))
+        btn_choice1.pack(side = tk.LEFT)
+        btn_choice2 = tk.Button(self.frame,
+                 text = file2,
+                 command = lambda: self.on_button_clicked(choice2))
+        btn_choice2.pack(side = tk.RIGHT)
+
     def choices_2(self, message, choice1, choice2):
         """ Widget to choose from two alternatives
         """
@@ -110,6 +130,10 @@ class MyWindow():
             result = self.true_false(title)
         elif mode == "notification":
             result = self.notification(title)
+        elif mode == "choices_files":
+            file1 = kwargs.pop('file1')
+            file2 = kwargs.pop('file2')
+            result = self.choices_files(file1, file2)
         elif mode == "choices_2":
             choice1 = kwargs.pop('choice1')
             choice2 = kwargs.pop('choice2')
