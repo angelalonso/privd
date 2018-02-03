@@ -2,19 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import logging as log    
+from window import MyWindow as Window
                
-
-
-
 class MyGUI():
     """ A Class managing user interaction, mainly log and debug messages
     , but supposed to manage also user feedback
     """
     def __init__(self, guimode, loglevel):
         self.loglevel = loglevel
-        if guimode: 
-            self.gui = True
-            from window import MyWindow as Window
+        if guimode: self.gui = True
         else: self.gui = False
 
     def info(self, message):

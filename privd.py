@@ -1,9 +1,6 @@
 #!/usr/bin/python3                                                                                                                                                                              
 # -*- coding: utf-8 -*-
 
-# TODO:
-# NEXTUP:
-# ask user for input on decissions, using gui and/or cli
 
 import subprocess
 import argparse
