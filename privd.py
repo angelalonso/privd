@@ -128,7 +128,7 @@ if __name__ == "__main__":
             file_remote = {}
             file_local['name'] = '$HOME/Private/testfile'
             file_local['timestamp'] = '1517642665.7443795'
-            file_remote['name'] = '$HOME/Private/testfile'
+            file_remote['name'] = 'HOME/Private/testfile'
             file_remote['timestamp'] = '1517642675.040509'
             print(Win.show_win("choices_files", title="HEYYYY", file1=file_local, file2=file_remote))
         else:

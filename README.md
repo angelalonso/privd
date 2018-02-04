@@ -68,6 +68,7 @@ Just delete that statusfile
 
 # TODO List (in Prio order):
 
+- First config when directory is empty, on CLI and GUI
 - GUI interaction for conflicts
 - Automate config, have the script run with as little config as possible.
 - Create a tiny 'interactive' function to help configure a second machine. Maybe with an export and import parameter

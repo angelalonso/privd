@@ -73,22 +73,56 @@ class MyWindow():
     def choices_files(self, file1, file2):
         """ Widget to choose which file to keep
         """
-        message = "What do you want to do?"
-        msg_width = len(message) * 14
+        message = "ATTENTION, CONFLICT!"
+        message2 = "The following file's local copy differs from the remote version!\n\n" + file1['name']
+        msg_width = 0
+        print(msg_width)
         title = tk.Message(self.frame, 
                 text = message, 
                 pady = 15, 
                 padx = 15, 
-                width = msg_width)
-        title.pack(side = tk.TOP)
+                width = len(message)*20)
+        subtitle = tk.Message(self.frame, 
+                text = message2, 
+                pady = 15, 
+                padx = 15, 
+                width = len(message2)*20)
+        file1_desc1 = tk.Message(self.frame,
+                text = "LOCAL",
+                pady = 5,     
+                padx = 5)
+        file1_desc2 = tk.Message(self.frame,
+                text = file1['timestamp'],
+                pady = 5,     
+                padx = 5)
+        file2_desc1 = tk.Message(self.frame,
+                text = "REMOTE",
+                pady = 5,     
+                padx = 5)
+        file2_desc2 = tk.Message(self.frame,
+                text = file2['timestamp'],
+                pady = 5,     
+                padx = 5)
+
+        #TODO: Create two columns, one "local" one "remote"
+        #      Add details about each version
+        #      choices are use remote, use local, and exit execution
         btn_choice1 = tk.Button(self.frame, 
                  text = file1, 
                  command = lambda: self.on_button_clicked(choice1))
-        btn_choice1.pack(side = tk.LEFT)
         btn_choice2 = tk.Button(self.frame,
                  text = file2,
                  command = lambda: self.on_button_clicked(choice2))
-        btn_choice2.pack(side = tk.RIGHT)
+        #title.pack(side = tk.TOP)
+        #subtitle.pack(side = tk.TOP)
+        #btn_choice1.pack(side = tk.LEFT)
+        #btn_choice2.pack(side = tk.RIGHT)
+        title.grid(row=0, column=0, columnspan=2)
+        subtitle.grid(row=1, column=0, columnspan=2)
+        file1_desc1.grid(row=2, column=0)
+        file1_desc2.grid(row=3, column=0)
+        file2_desc1.grid(row=2, column=1)
+        file2_desc2.grid(row=3, column=1)
 
     def choices_2(self, message, choice1, choice2):
         """ Widget to choose from two alternatives
