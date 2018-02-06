@@ -74,35 +74,41 @@ class MyWindow():
         """ Widget to choose which file to keep
         """
         message = "ATTENTION, CONFLICT!"
-        message2 = "The following file's local copy differs from the remote version!\n\n" + file1['name']
-        msg_width = 0
+        message2_part = "The following file's local copy differs from the remote version!"
+        message2 = message2_part + "\n\n" + file1['name']
+        msg_width = (max(len(file1['name']), len(message2_part)) * 7)
         print(msg_width)
+        pad = 4
         title = tk.Message(self.frame, 
                 text = message, 
-                pady = 15, 
-                padx = 15, 
-                width = len(message)*20)
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
         subtitle = tk.Message(self.frame, 
                 text = message2, 
-                pady = 15, 
-                padx = 15, 
-                width = len(message2)*20)
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
         file1_desc1 = tk.Message(self.frame,
                 text = "LOCAL",
-                pady = 5,     
-                padx = 5)
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
         file1_desc2 = tk.Message(self.frame,
                 text = file1['timestamp'],
-                pady = 5,     
-                padx = 5)
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
         file2_desc1 = tk.Message(self.frame,
                 text = "REMOTE",
-                pady = 5,     
-                padx = 5)
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
         file2_desc2 = tk.Message(self.frame,
                 text = file2['timestamp'],
-                pady = 5,     
-                padx = 5)
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
 
         #TODO: Create two columns, one "local" one "remote"
         #      Add details about each version
