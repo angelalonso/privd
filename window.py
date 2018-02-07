@@ -81,16 +81,31 @@ class MyWindow():
         pad = 4
         title = tk.Message(self.frame, 
                 text = message, 
+                font = ("",12,"bold"),
                 pady = pad, 
                 padx = pad, 
                 width = msg_width)
         subtitle = tk.Message(self.frame, 
                 text = message2, 
+                font = ("",11,""),
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
+        desc_timestamp = tk.Message(self.frame, 
+                text = "Last changed", 
+                font = ("",10,"bold"),
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
+        desc_size = tk.Message(self.frame, 
+                text = "Size", 
+                font = ("",10,"bold"),
                 pady = pad, 
                 padx = pad, 
                 width = msg_width)
         file1_desc1 = tk.Message(self.frame,
                 text = "LOCAL",
+                font = ("",12,""),
                 pady = pad, 
                 padx = pad, 
                 width = msg_width)
@@ -99,8 +114,14 @@ class MyWindow():
                 pady = pad, 
                 padx = pad, 
                 width = msg_width)
+        file1_desc3 = tk.Message(self.frame,
+                text = file1['size'],
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
         file2_desc1 = tk.Message(self.frame,
                 text = "REMOTE",
+                font = ("",12,""),
                 pady = pad, 
                 padx = pad, 
                 width = msg_width)
@@ -109,26 +130,42 @@ class MyWindow():
                 pady = pad, 
                 padx = pad, 
                 width = msg_width)
+        file2_desc3 = tk.Message(self.frame,
+                text = file2['size'],
+                pady = pad, 
+                padx = pad, 
+                width = msg_width)
 
-        #TODO: Create two columns, one "local" one "remote"
-        #      Add details about each version
-        #      choices are use remote, use local, and exit execution
-        btn_choice1 = tk.Button(self.frame, 
-                 text = file1, 
-                 command = lambda: self.on_button_clicked(choice1))
-        btn_choice2 = tk.Button(self.frame,
-                 text = file2,
-                 command = lambda: self.on_button_clicked(choice2))
-        #title.pack(side = tk.TOP)
-        #subtitle.pack(side = tk.TOP)
-        #btn_choice1.pack(side = tk.LEFT)
-        #btn_choice2.pack(side = tk.RIGHT)
-        title.grid(row=0, column=0, columnspan=2)
-        subtitle.grid(row=1, column=0, columnspan=2)
-        file1_desc1.grid(row=2, column=0)
-        file1_desc2.grid(row=3, column=0)
-        file2_desc1.grid(row=2, column=1)
-        file2_desc2.grid(row=3, column=1)
+        btn_useremote = tk.Button(self.frame, 
+                text = 'Use REMOTE', 
+                pady = pad, 
+                padx = pad, 
+                command = lambda: self.on_button_clicked('use remote'))
+        btn_uselocal = tk.Button(self.frame,
+                text = 'Use LOCAL',
+                pady = pad, 
+                padx = pad, 
+                command = lambda: self.on_button_clicked('use local'))
+        btn_exit = tk.Button(self.frame,
+                text = 'EXIT',
+                pady = pad, 
+                padx = pad, 
+                command = lambda: self.on_button_clicked('exit'))
+
+        title.grid(row=0, column=0, columnspan=3)
+        subtitle.grid(row=1, column=0, columnspan=3)
+        desc_timestamp.grid(row=3, column=0, sticky=tk.E)
+        desc_size.grid(row=4, column=0, sticky=tk.E)
+        file1_desc1.grid(row=2, column=1)
+        file1_desc2.grid(row=3, column=1, sticky=tk.E)
+        file1_desc3.grid(row=4, column=1, sticky=tk.E)
+        file2_desc1.grid(row=2, column=2)
+        file2_desc2.grid(row=3, column=2, sticky=tk.E)
+        file2_desc3.grid(row=4, column=2, sticky=tk.E)
+        btn_useremote.grid(row=5, column=0, columnspan=3, sticky=tk.N+tk.S+tk.E+tk.W)
+        btn_uselocal.grid(row=6, column=0, columnspan=3, sticky=tk.N+tk.S+tk.E+tk.W)
+        btn_exit.grid(row=7, column=0, columnspan=3, sticky=tk.N+tk.S+tk.E+tk.W)
+
 
     def choices_2(self, message, choice1, choice2):
         """ Widget to choose from two alternatives

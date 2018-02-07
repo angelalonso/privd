@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
                              
                               
+import datetime
 import hashlib
+import math
 import os
 
 
@@ -30,6 +32,20 @@ def enc_homefolder(config, path):
     real_enc_mainfolder =  config.enc_mainfolder.replace('$HOME', os.environ['HOME'])
     new_path = path.replace(config.enc_mainfolder, real_enc_mainfolder)
     return new_path
+
+def get_filesize(file):
+    """ returns the filesize of a given file as String
+    """
+    path = homeenv2real_path(file)
+    size_bytes = os.stat(homeenv2real_path(path)).st_size
+   #https://stackoverflow.com/questions/5194057/better-way-to-convert-file-sizes-in-python 
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])
 
 def get_encrypted_file_path(file, config):
     """ returns the path to the encrypted copy of the file
@@ -64,6 +80,14 @@ def timestamp(file):
         return format(os.stat(realfile).st_mtime)
     else:
         return 0
+
+
+def beauty_timestamp(timestamp):
+    """ returns a readable version of a timestamp
+    """
+    beauty = datetime.datetime.fromtimestamp(
+            float(timestamp)).strftime('%d-%m-%Y %H:%M:%S')
+    return beauty
 
 
 def checksum(file_in):
