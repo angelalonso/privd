@@ -26,12 +26,14 @@ def homeenv2real_path(path):
     new_path = path.replace('$HOME', os.environ['HOME'])
     return new_path
 
+
 def enc_homefolder(config, path):
     """ returns path parameter with the real HOME folder path 
     """
     real_enc_mainfolder =  config.enc_mainfolder.replace('$HOME', os.environ['HOME'])
     new_path = path.replace(config.enc_mainfolder, real_enc_mainfolder)
     return new_path
+
 
 def get_filesize(file):
     """ returns the filesize of a given file as String
@@ -47,11 +49,13 @@ def get_filesize(file):
     s = round(size_bytes / p, 2)
     return "%s %s" % (s, size_name[i])
 
+
 def get_encrypted_file_path(file, config):
     """ returns the path to the encrypted copy of the file
     """
     filepath = file.replace('$HOME', '/_HOME')
     return config.enc_mainfolder + filepath + '.gpg'
+
 
 def get_decrypted_file_path(enc_file, config):
     """ returns the path to the decrypted copy of the file
