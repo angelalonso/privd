@@ -7,7 +7,7 @@ import logging as log
 import os                
          
 
-from gui import MyGUI as Gui
+from ui import MyGUI as Gui
 
 
 """ Class to manage keys used for encryption and decryption

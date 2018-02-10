@@ -5,7 +5,7 @@ import subprocess
 import os                
 
 
-from gui import MyGUI as Gui
+from ui import MyGUI as Gui
 from tools import real2homeenv_path as getenvhome
 from tools import homeenv2real_path as getrealhome
 from tools import enc_homefolder

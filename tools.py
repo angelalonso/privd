@@ -8,7 +8,7 @@ import math
 import os
 
 
-from gui import MyGUI as Gui
+from ui import MyGUI as Gui
 
 
 def real2homeenv_path(path):

@@ -14,7 +14,7 @@ from tools import homeenv2real_path as home2real
 from tools import get_filesize as getsize
 from tools import beauty_timestamp
 from configs import Config
-from gui import MyGUI as Gui
+from ui import MyGUI as Gui
 from keys import Key as Key
 from status import Status
 from window import MyWindow as Window

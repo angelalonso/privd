@@ -189,6 +189,9 @@ class Status(object):
         #TODO: need to show as much info (what was modified, when, by whom if possible...)
         #      as possible, for the user to decide properly
         # Probably we need a new window object with different sizes for different infos
+        current_local = self.local[get_sync_folder_path(obj, self.config)][obj]
+        current_remote = self.remote[get_sync_folder_path(obj, self.config)][obj]
+        current_status = self.status[get_sync_folder_path(obj, self.config)][obj]
         pass
 
 

@@ -26,3 +26,13 @@ class MyGUI():
         """
         #not using windows, no one wants debug windows!
         log.debug(message)
+
+    def ui_fileconflict(self, file):
+        """ Asks user to take action on a file conflict
+        """
+        if self.gui:
+            print("No GUI")
+        else:
+            print("GUI")
+
+
