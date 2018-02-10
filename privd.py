@@ -1,6 +1,12 @@
 #!/usr/bin/python3                                                                                                                                                                              
 # -*- coding: utf-8 -*-
 
+# TODO:
+# - new decrypt to temporary file
+#  - on conflict, decrypt, get size from there
+# - create conflict front for CLI
+# - move from tools to files as much as possible
+
 
 import subprocess
 import argparse
@@ -124,19 +130,8 @@ if __name__ == "__main__":
             status.check_n_sync()
         # TODO: move this to where it can be needed: file conflicts. Start with informational dialogs on changes
         elif args['test']:
-            #Win = Window()
-            #print(Win.show_win("true_false", "You know what happens with a Hello world"))
-            conflicted = {}
-            file_local = {}
-            file_remote = {}
-            file_local['name'] = '$HOME/Private/testfile'
-            file_local['timestamp'] = beauty_timestamp('1517642665.7443795')
-            file_local['size'] = getsize('$HOME/Private/testfile')
-            file_remote['name'] = 'HOME/Private/testfile'
-            file_remote['timestamp'] = beauty_timestamp('1517642675.040509')
-            file_remote['size'] = '518000000000000 bytes'
-            gui.ui_fileconflict(conflicted)
-            #print(Win.show_win("choices_files", title="HEYYYY", file1=file_local, file2=file_remote))
+            conflicted = '$HOME/Private/testfile'
+            gui.ui_fileconflict(conflicted, config)
         else:
             daemon = True
             if status.read_local() == 0 and status.read_remote() != 0:

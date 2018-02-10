@@ -35,10 +35,10 @@ def enc_homefolder(config, path):
     return new_path
 
 
-def get_filesize(file):
+def get_filesize(file_in):
     """ returns the filesize of a given file as String
     """
-    path = homeenv2real_path(file)
+    path = homeenv2real_path(file_in)
     size_bytes = os.stat(homeenv2real_path(path)).st_size
    #https://stackoverflow.com/questions/5194057/better-way-to-convert-file-sizes-in-python 
     if size_bytes == 0:
@@ -93,7 +93,7 @@ def beauty_timestamp(timestamp):
             float(timestamp)).strftime('%d-%m-%Y %H:%M:%S')
     return beauty
 
-
+#TODO: move to files.py
 def checksum(file_in):
     """ Gets the checksum of the file                                                                                                                           
     Hashlib part taken from https://stackoverflow.com/questions/22058048/hashing-a-file-in-python
